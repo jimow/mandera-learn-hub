@@ -1,15 +1,22 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Mail, Phone, ArrowRightLeft } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TeacherDialog } from "@/components/teachers/TeacherDialog";
 import { TeacherTransferDialog } from "@/components/teachers/TeacherTransferDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
@@ -18,10 +25,6 @@ import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type Teacher = Database["public"]["Tables"]["teachers"]["Row"];
-
-function getInitials(name: string) {
-  return name.split(" ").map((n) => n[0]).join("").toUpperCase().slice(0, 2);
-}
 
 export default function Teachers() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -92,49 +95,74 @@ export default function Teachers() {
         <Button variant="outline" className="gap-2"><Filter className="w-4 h-4" />Filters</Button>
       </div>
 
-      {isLoading ? (
-        <div className="p-8 text-center text-muted-foreground">Loading...</div>
-      ) : filteredTeachers.length === 0 ? (
-        <div className="p-8 text-center text-muted-foreground">No teachers found</div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredTeachers.map((teacher) => (
-            <div key={teacher.id} className="bg-card rounded-xl border border-border p-6 animate-fade-in hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <Avatar className="h-12 w-12">
-                    <AvatarFallback className="bg-primary text-primary-foreground font-medium">{getInitials(teacher.full_name)}</AvatarFallback>
-                  </Avatar>
-                  <div>
-                    <h3 className="font-semibold">{teacher.full_name}</h3>
-                    <p className="text-sm text-muted-foreground font-mono">{teacher.employee_number}</p>
-                  </div>
-                </div>
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <Button variant="ghost" size="icon" className="h-8 w-8"><MoreVertical className="w-4 h-4" /></Button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end">
-                    <DropdownMenuItem className="gap-2"><Eye className="w-4 h-4" /> View Profile</DropdownMenuItem>
-                    {canUpdate && <DropdownMenuItem className="gap-2" onClick={() => handleEdit(teacher)}><Edit className="w-4 h-4" /> Edit</DropdownMenuItem>}
-                    {canTransfer && <DropdownMenuItem className="gap-2" onClick={() => handleTransfer(teacher)}><ArrowRightLeft className="w-4 h-4" /> Transfer</DropdownMenuItem>}
-                    {canDelete && <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(teacher)}><Trash2 className="w-4 h-4" /> Delete</DropdownMenuItem>}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              </div>
-              <div className="space-y-3">
-                <div><p className="text-xs text-muted-foreground uppercase tracking-wide">Assigned Center</p><p className="text-sm font-medium">{teacher.ecde_centers?.name || "Unassigned"}</p></div>
-                <div><p className="text-xs text-muted-foreground uppercase tracking-wide">Qualification</p><p className="text-sm">{teacher.qualification || "N/A"}</p></div>
-                {teacher.phone && <div className="flex items-center gap-4 text-sm text-muted-foreground"><span className="flex items-center gap-1"><Phone className="w-3 h-3" />{teacher.phone}</span></div>}
-              </div>
-              <div className="mt-4 pt-4 border-t border-border flex items-center justify-between">
-                <Badge variant={teacher.is_active ? "default" : "secondary"}>{teacher.is_active ? "Active" : "Inactive"}</Badge>
-                {teacher.email && <Button variant="ghost" size="sm" className="gap-1 text-primary"><Mail className="w-3 h-3" />Contact</Button>}
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
+      <div className="data-table animate-fade-in">
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+        ) : filteredTeachers.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">No teachers found</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Employee No.</TableHead>
+                <TableHead>Full Name</TableHead>
+                <TableHead>Gender</TableHead>
+                <TableHead>Phone</TableHead>
+                <TableHead>Center</TableHead>
+                <TableHead>Qualification</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead className="w-12"></TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filteredTeachers.map((teacher) => (
+                <TableRow key={teacher.id}>
+                  <TableCell className="font-mono text-sm">{teacher.employee_number}</TableCell>
+                  <TableCell className="font-medium">{teacher.full_name}</TableCell>
+                  <TableCell className="capitalize">{teacher.gender}</TableCell>
+                  <TableCell>{teacher.phone || "-"}</TableCell>
+                  <TableCell>{teacher.ecde_centers?.name || "Unassigned"}</TableCell>
+                  <TableCell>{teacher.qualification || "-"}</TableCell>
+                  <TableCell>
+                    <Badge variant={teacher.is_active ? "default" : "secondary"}>
+                      {teacher.is_active ? "Active" : "Inactive"}
+                    </Badge>
+                  </TableCell>
+                  <TableCell>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="icon" className="h-8 w-8">
+                          <MoreVertical className="w-4 h-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem className="gap-2">
+                          <Eye className="w-4 h-4" /> View Profile
+                        </DropdownMenuItem>
+                        {canUpdate && (
+                          <DropdownMenuItem className="gap-2" onClick={() => handleEdit(teacher)}>
+                            <Edit className="w-4 h-4" /> Edit
+                          </DropdownMenuItem>
+                        )}
+                        {canTransfer && (
+                          <DropdownMenuItem className="gap-2" onClick={() => handleTransfer(teacher)}>
+                            <ArrowRightLeft className="w-4 h-4" /> Transfer
+                          </DropdownMenuItem>
+                        )}
+                        {canDelete && (
+                          <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(teacher)}>
+                            <Trash2 className="w-4 h-4" /> Delete
+                          </DropdownMenuItem>
+                        )}
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
 
       <TeacherDialog open={dialogOpen} onOpenChange={setDialogOpen} teacher={editingTeacher} />
       <TeacherTransferDialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen} teacher={teacherToTransfer} />
