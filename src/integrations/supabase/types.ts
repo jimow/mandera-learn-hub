@@ -57,11 +57,14 @@ export type Database = {
           established_date: string | null
           id: string
           is_active: boolean | null
+          latitude: number | null
           location: string
+          longitude: number | null
           name: string
           sub_county: string
           updated_at: string
           ward: string
+          ward_id: string | null
         }
         Insert: {
           capacity?: number | null
@@ -72,11 +75,14 @@ export type Database = {
           established_date?: string | null
           id?: string
           is_active?: boolean | null
+          latitude?: number | null
           location: string
+          longitude?: number | null
           name: string
           sub_county: string
           updated_at?: string
           ward: string
+          ward_id?: string | null
         }
         Update: {
           capacity?: number | null
@@ -87,13 +93,24 @@ export type Database = {
           established_date?: string | null
           id?: string
           is_active?: boolean | null
+          latitude?: number | null
           location?: string
+          longitude?: number | null
           name?: string
           sub_county?: string
           updated_at?: string
           ward?: string
+          ward_id?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "ecde_centers_ward_id_fkey"
+            columns: ["ward_id"]
+            isOneToOne: false
+            referencedRelation: "wards"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       permissions: {
         Row: {
@@ -172,51 +189,76 @@ export type Database = {
           address: string | null
           admission_date: string | null
           admission_number: string
+          approval_status: Database["public"]["Enums"]["approval_status"] | null
+          approved_by_ministry: string | null
+          approved_by_subcounty: string | null
           center_id: string | null
           created_at: string
+          created_by: string | null
           date_of_birth: string
           full_name: string
           gender: Database["public"]["Enums"]["gender"]
           id: string
           is_active: boolean | null
+          ministry_approval_date: string | null
           parent_email: string | null
           parent_name: string
           parent_phone: string
+          rejection_reason: string | null
           special_needs: string | null
+          subcounty_approval_date: string | null
           updated_at: string
         }
         Insert: {
           address?: string | null
           admission_date?: string | null
           admission_number: string
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_by_ministry?: string | null
+          approved_by_subcounty?: string | null
           center_id?: string | null
           created_at?: string
+          created_by?: string | null
           date_of_birth: string
           full_name: string
           gender: Database["public"]["Enums"]["gender"]
           id?: string
           is_active?: boolean | null
+          ministry_approval_date?: string | null
           parent_email?: string | null
           parent_name: string
           parent_phone: string
+          rejection_reason?: string | null
           special_needs?: string | null
+          subcounty_approval_date?: string | null
           updated_at?: string
         }
         Update: {
           address?: string | null
           admission_date?: string | null
           admission_number?: string
+          approval_status?:
+            | Database["public"]["Enums"]["approval_status"]
+            | null
+          approved_by_ministry?: string | null
+          approved_by_subcounty?: string | null
           center_id?: string | null
           created_at?: string
+          created_by?: string | null
           date_of_birth?: string
           full_name?: string
           gender?: Database["public"]["Enums"]["gender"]
           id?: string
           is_active?: boolean | null
+          ministry_approval_date?: string | null
           parent_email?: string | null
           parent_name?: string
           parent_phone?: string
+          rejection_reason?: string | null
           special_needs?: string | null
+          subcounty_approval_date?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -228,6 +270,30 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sub_counties: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       teachers: {
         Row: {
@@ -291,6 +357,41 @@ export type Database = {
           },
         ]
       }
+      user_center_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          center_id: string
+          id: string
+          is_active: boolean | null
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          center_id: string
+          id?: string
+          is_active?: boolean | null
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          center_id?: string
+          id?: string
+          is_active?: boolean | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_center_assignments_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "ecde_centers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -312,11 +413,82 @@ export type Database = {
         }
         Relationships: []
       }
+      user_subcounty_assignments: {
+        Row: {
+          assigned_at: string
+          assigned_by: string | null
+          id: string
+          is_active: boolean | null
+          sub_county_id: string
+          user_id: string
+        }
+        Insert: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          sub_county_id: string
+          user_id: string
+        }
+        Update: {
+          assigned_at?: string
+          assigned_by?: string | null
+          id?: string
+          is_active?: boolean | null
+          sub_county_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_subcounty_assignments_sub_county_id_fkey"
+            columns: ["sub_county_id"]
+            isOneToOne: false
+            referencedRelation: "sub_counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      wards: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          sub_county_id: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          sub_county_id: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          sub_county_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "wards_sub_county_id_fkey"
+            columns: ["sub_county_id"]
+            isOneToOne: false
+            referencedRelation: "sub_counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      get_user_center_id: { Args: { _user_id: string }; Returns: string }
       get_user_permissions: {
         Args: { _user_id: string }
         Returns: {
@@ -327,6 +499,7 @@ export type Database = {
           resource: string
         }[]
       }
+      get_user_subcounty_id: { Args: { _user_id: string }; Returns: string }
       has_any_role: { Args: { _user_id: string }; Returns: boolean }
       has_permission: {
         Args: { _action: string; _resource: string; _user_id: string }
@@ -340,6 +513,7 @@ export type Database = {
         Returns: boolean
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
+      is_subcounty_manager: { Args: { _user_id: string }; Returns: boolean }
       super_admin_exists: { Args: never; Returns: boolean }
     }
     Enums: {
@@ -352,6 +526,11 @@ export type Database = {
         | "teacher"
         | "education_officer"
         | "governor"
+      approval_status:
+        | "pending"
+        | "approved_subcounty"
+        | "approved_ministry"
+        | "rejected"
       gender: "male" | "female"
     }
     CompositeTypes: {
@@ -489,6 +668,12 @@ export const Constants = {
         "teacher",
         "education_officer",
         "governor",
+      ],
+      approval_status: [
+        "pending",
+        "approved_subcounty",
+        "approved_ministry",
+        "rejected",
       ],
       gender: ["male", "female"],
     },
