@@ -20,7 +20,9 @@ import { Badge } from "@/components/ui/badge";
 import { StudentDialog } from "@/components/students/StudentDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { DataActions } from "@/components/shared/DataActions";
+import { TablePagination } from "@/components/shared/TablePagination";
 import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
+import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -59,6 +61,18 @@ export default function Students() {
     student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     student.admission_number.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
+
+  const {
+    paginatedData,
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+  } = usePagination({ data: filteredStudents });
 
   const handleEdit = (student: Student) => {
     setEditingStudent(student);
@@ -148,7 +162,7 @@ export default function Students() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredStudents.map((student) => (
+              {paginatedData.map((student) => (
                 <TableRow key={student.id}>
                   <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
                   <TableCell className="font-medium">{student.full_name}</TableCell>
@@ -197,6 +211,16 @@ export default function Students() {
             </TableBody>
           </Table>
         )}
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={goToPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
       <StudentDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editingStudent} />
