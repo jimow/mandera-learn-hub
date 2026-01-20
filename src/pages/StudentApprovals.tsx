@@ -45,11 +45,14 @@ export default function StudentApprovals() {
 
   const { hasPermission } = useAuth();
   
-  // Permission-based access control for approvals
-  const canViewApprovals = hasPermission("approvals", "read");
-  const canApproveSubcounty = hasPermission("approvals", "update");
-  const canApproveMinistry = hasPermission("approvals", "update");
-  const canReject = hasPermission("approvals", "delete");
+  // Permission-based access control for approvals - Level 1 (Sub-county) and Level 2 (Ministry)
+  const canViewLevel1 = hasPermission("approvals_level1", "read");
+  const canApproveLevel1 = hasPermission("approvals_level1", "update");
+  const canRejectLevel1 = hasPermission("approvals_level1", "delete");
+  
+  const canViewLevel2 = hasPermission("approvals_level2", "read");
+  const canApproveLevel2 = hasPermission("approvals_level2", "update");
+  const canRejectLevel2 = hasPermission("approvals_level2", "delete");
 
   const approveSubcounty = useApproveBySubcounty();
   const approveMinistry = useApproveByMinistry();
@@ -67,7 +70,7 @@ export default function StudentApprovals() {
       if (error) throw error;
       return data as Student[];
     },
-    enabled: canViewApprovals,
+    enabled: canViewLevel1,
   });
 
   // Fetch students awaiting ministry approval
@@ -82,7 +85,7 @@ export default function StudentApprovals() {
       if (error) throw error;
       return data as Student[];
     },
-    enabled: canViewApprovals,
+    enabled: canViewLevel2,
   });
 
   // Fetch recently approved students
@@ -153,14 +156,14 @@ export default function StudentApprovals() {
   const StudentTable = ({
     students,
     isLoading,
-    showApproveSubcounty,
-    showApproveMinistry,
+    showApproveLevel1,
+    showApproveLevel2,
     showRejection,
   }: {
     students: Student[] | undefined;
     isLoading: boolean;
-    showApproveSubcounty?: boolean;
-    showApproveMinistry?: boolean;
+    showApproveLevel1?: boolean;
+    showApproveLevel2?: boolean;
     showRejection?: boolean;
   }) => (
     <div className="data-table">
@@ -212,7 +215,7 @@ export default function StudentApprovals() {
                     >
                       <Eye className="w-4 h-4" />
                     </Button>
-                    {showApproveSubcounty && canApproveSubcounty && (
+                    {showApproveLevel1 && canApproveLevel1 && (
                       <>
                         <Button
                           size="sm"
@@ -223,7 +226,7 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Approve
                         </Button>
-                        {canReject && (
+                        {canRejectLevel1 && (
                           <Button
                             variant="destructive"
                             size="sm"
@@ -236,7 +239,7 @@ export default function StudentApprovals() {
                         )}
                       </>
                     )}
-                    {showApproveMinistry && canApproveMinistry && (
+                    {showApproveLevel2 && canApproveLevel2 && (
                       <>
                         <Button
                           size="sm"
@@ -247,7 +250,7 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Final Approve
                         </Button>
-                        {canReject && (
+                        {canRejectLevel2 && (
                           <Button
                             variant="destructive"
                             size="sm"
@@ -337,16 +340,16 @@ export default function StudentApprovals() {
       {/* Tabs */}
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
-          {canViewApprovals && (
+          {canViewLevel1 && (
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="w-4 h-4" />
-              Pending ({pendingStudents?.length || 0})
+              Pending L1 ({pendingStudents?.length || 0})
             </TabsTrigger>
           )}
-          {canViewApprovals && (
+          {canViewLevel2 && (
             <TabsTrigger value="ministry" className="gap-2">
               <Building2 className="w-4 h-4" />
-              Awaiting Ministry ({awaitingMinistry?.length || 0})
+              Awaiting L2 ({awaitingMinistry?.length || 0})
             </TabsTrigger>
           )}
           <TabsTrigger value="approved" className="gap-2">
@@ -359,11 +362,11 @@ export default function StudentApprovals() {
           </TabsTrigger>
         </TabsList>
 
-        {canViewApprovals && (
+        {canViewLevel1 && (
           <TabsContent value="pending">
             <Card>
               <CardHeader>
-                <CardTitle>Pending Sub-County Approval</CardTitle>
+                <CardTitle>Pending Level 1 Approval (Sub-County)</CardTitle>
                 <CardDescription>
                   Students awaiting first-level approval from sub-county education officers
                 </CardDescription>
@@ -372,18 +375,18 @@ export default function StudentApprovals() {
                 <StudentTable
                   students={pendingStudents}
                   isLoading={loadingPending}
-                  showApproveSubcounty
+                  showApproveLevel1
                 />
               </CardContent>
             </Card>
           </TabsContent>
         )}
 
-        {canViewApprovals && (
+        {canViewLevel2 && (
           <TabsContent value="ministry">
             <Card>
               <CardHeader>
-                <CardTitle>Awaiting Ministry Approval</CardTitle>
+                <CardTitle>Pending Level 2 Approval (Ministry)</CardTitle>
                 <CardDescription>
                   Students approved by sub-county, awaiting final ministry approval
                 </CardDescription>
@@ -392,7 +395,7 @@ export default function StudentApprovals() {
                 <StudentTable
                   students={awaitingMinistry}
                   isLoading={loadingMinistry}
-                  showApproveMinistry
+                  showApproveLevel2
                 />
               </CardContent>
             </Card>

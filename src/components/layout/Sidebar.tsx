@@ -60,7 +60,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Approvals", 
       href: "/approvals", 
       icon: ClipboardCheck,
-      visible: hasPermission("approvals", "read"),
+      visible: hasPermission("approvals_level1", "read") || hasPermission("approvals_level2", "read"),
     },
     { 
       name: "Roles & Permissions", 
