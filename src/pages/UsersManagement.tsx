@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X } from "lucide-react";
+import { Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X, School } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -17,6 +17,7 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import {
   Dialog,
@@ -34,6 +35,7 @@ import {
 import { useUsers, useAssignRole, useRemoveRole, useUpdateProfile } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
+import { CenterAssignmentDialog } from "@/components/users/CenterAssignmentDialog";
 import type { Database } from "@/integrations/supabase/types";
 import { Constants } from "@/integrations/supabase/types";
 
@@ -65,25 +67,28 @@ function formatRole(role: string) {
 export default function UsersManagement() {
   const [searchQuery, setSearchQuery] = useState("");
   const [roleDialogOpen, setRoleDialogOpen] = useState(false);
+  const [centerDialogOpen, setCenterDialogOpen] = useState(false);
   const [selectedUser, setSelectedUser] = useState<{ userId: string; fullName: string; roles: AppRole[] } | null>(null);
   const [selectedRole, setSelectedRole] = useState<AppRole | "">("");
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [roleToRemove, setRoleToRemove] = useState<{ userId: string; role: AppRole; userName: string } | null>(null);
+  const [userForCenterAssignment, setUserForCenterAssignment] = useState<{ userId: string; fullName: string } | null>(null);
 
   const { data: users, isLoading } = useUsers();
   const assignRole = useAssignRole();
   const removeRole = useRemoveRole();
-  const { isSuperAdmin, hasPermission, user } = useAuth();
+  const { isSuperAdmin, hasPermission, user, isAdmin } = useAuth();
 
   const canManageRoles = isSuperAdmin();
   const canViewUsers = hasPermission("users", "read");
+  const canManageCenters = isAdmin();
 
   const filteredUsers = users?.filter((u) =>
     u.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     u.email.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
 
-  const handleManageRoles = (userProfile: typeof users[0]) => {
+  const handleManageRoles = (userProfile: typeof filteredUsers[0]) => {
     setSelectedUser({
       userId: userProfile.user_id,
       fullName: userProfile.full_name,
@@ -91,6 +96,14 @@ export default function UsersManagement() {
     });
     setSelectedRole("");
     setRoleDialogOpen(true);
+  };
+
+  const handleManageCenters = (userProfile: typeof filteredUsers[0]) => {
+    setUserForCenterAssignment({
+      userId: userProfile.user_id,
+      fullName: userProfile.full_name,
+    });
+    setCenterDialogOpen(true);
   };
 
   const handleAssignRole = async () => {
@@ -247,6 +260,11 @@ export default function UsersManagement() {
                             <Shield className="w-4 h-4" /> Manage Roles
                           </DropdownMenuItem>
                         )}
+                        {canManageCenters && (
+                          <DropdownMenuItem className="gap-2" onClick={() => handleManageCenters(userProfile)}>
+                            <School className="w-4 h-4" /> Assign Centers
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -327,6 +345,13 @@ export default function UsersManagement() {
         title="Remove Role"
         description={`Are you sure you want to remove the "${roleToRemove ? formatRole(roleToRemove.role) : ""}" role from ${roleToRemove?.userName}?`}
         isLoading={removeRole.isPending}
+      />
+
+      {/* Center Assignment Dialog */}
+      <CenterAssignmentDialog
+        open={centerDialogOpen}
+        onOpenChange={setCenterDialogOpen}
+        user={userForCenterAssignment}
       />
     </div>
   );
