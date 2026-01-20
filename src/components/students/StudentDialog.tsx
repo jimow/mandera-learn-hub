@@ -25,8 +25,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { Badge } from "@/components/ui/badge";
 import { useCenters } from "@/hooks/useCenters";
 import { useCreateStudent, useUpdateStudent } from "@/hooks/useStudents";
+import { useUserCenterAssignment } from "@/hooks/useUserCenterAssignment";
+import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 import { useEffect } from "react";
 
@@ -56,9 +59,15 @@ interface StudentDialogProps {
 
 export function StudentDialog({ open, onOpenChange, student }: StudentDialogProps) {
   const { data: centers } = useCenters();
+  const { data: userCenterAssignment } = useUserCenterAssignment();
+  const { hasRole, isAdmin } = useAuth();
   const createStudent = useCreateStudent();
   const updateStudent = useUpdateStudent();
   const isEditing = !!student;
+  
+  const isCenterAdmin = hasRole("center_admin");
+  const assignedCenterId = userCenterAssignment?.center_id;
+  const assignedCenterName = userCenterAssignment?.ecde_centers?.name;
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -98,7 +107,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         gender: undefined,
         date_of_birth: "",
         admission_number: "",
-        center_id: "",
+        center_id: isCenterAdmin && assignedCenterId ? assignedCenterId : "",
         parent_name: "",
         parent_phone: "",
         parent_email: "",
@@ -107,10 +116,15 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         admission_date: new Date().toISOString().split("T")[0],
       });
     }
-  }, [student, form]);
+  }, [student, form, isCenterAdmin, assignedCenterId]);
 
   const onSubmit = async (data: FormData) => {
     try {
+      // For center admin, always use their assigned center
+      const centerId = isCenterAdmin && assignedCenterId 
+        ? assignedCenterId 
+        : (data.center_id || null);
+
       const studentData = {
         full_name: data.full_name,
         gender: data.gender,
@@ -118,7 +132,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         admission_number: data.admission_number,
         parent_name: data.parent_name,
         parent_phone: data.parent_phone,
-        center_id: data.center_id || null,
+        center_id: centerId,
         parent_email: data.parent_email || null,
         address: data.address || null,
         special_needs: data.special_needs || null,
@@ -217,30 +231,43 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
                     </FormItem>
                   )}
                 />
-                <FormField
-                  control={form.control}
-                  name="center_id"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>ECDE Center</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value}>
-                        <FormControl>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select center" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {centers?.map((center) => (
-                            <SelectItem key={center.id} value={center.id}>
-                              {center.name}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
+                
+                {/* Show center field for admins, display assigned center for center admins */}
+                {isCenterAdmin && assignedCenterId ? (
+                  <FormItem>
+                    <FormLabel>ECDE Center</FormLabel>
+                    <div className="flex items-center gap-2 h-10 px-3 py-2 rounded-md border border-input bg-muted/50">
+                      <span className="text-sm">{assignedCenterName}</span>
+                      <Badge variant="secondary" className="text-xs">Assigned</Badge>
+                    </div>
+                  </FormItem>
+                ) : isAdmin() ? (
+                  <FormField
+                    control={form.control}
+                    name="center_id"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>ECDE Center</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select center" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {centers?.map((center) => (
+                              <SelectItem key={center.id} value={center.id}>
+                                {center.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                ) : null}
+                
                 <FormField
                   control={form.control}
                   name="admission_date"
