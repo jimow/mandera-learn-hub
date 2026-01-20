@@ -19,14 +19,29 @@ export function CentersMap() {
   const { data: centers } = useCenters();
 
   useEffect(() => {
+    let isMounted = true;
+
     const initializeMap = async () => {
       if (!mapContainer.current || map.current) return;
 
       try {
+        console.log("Fetching Mapbox token...");
         // Fetch Mapbox token from edge function
         const { data, error } = await supabase.functions.invoke("get-mapbox-token");
         
-        if (error || !data?.token) {
+        console.log("Token response:", { data, error });
+        
+        if (!isMounted) return;
+        
+        if (error) {
+          console.error("Edge function error:", error);
+          setMapError("Failed to fetch map token");
+          setTokenLoading(false);
+          return;
+        }
+        
+        if (!data?.token) {
+          console.error("No token in response:", data);
           setMapError("Mapbox token not configured");
           setTokenLoading(false);
           return;
@@ -45,23 +60,30 @@ export function CentersMap() {
         map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
         map.current.on("load", () => {
-          setMapLoaded(true);
+          if (isMounted) {
+            setMapLoaded(true);
+          }
         });
 
         map.current.on("error", (e) => {
           console.error("Map error:", e);
-          setMapError("Failed to load map");
+          if (isMounted) {
+            setMapError("Failed to load map");
+          }
         });
       } catch (error) {
         console.error("Map initialization error:", error);
-        setMapError("Failed to initialize map");
-        setTokenLoading(false);
+        if (isMounted) {
+          setMapError("Failed to initialize map");
+          setTokenLoading(false);
+        }
       }
     };
 
     initializeMap();
 
     return () => {
+      isMounted = false;
       if (map.current) {
         map.current.remove();
         map.current = null;
