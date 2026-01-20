@@ -112,6 +112,42 @@ export type Database = {
           },
         ]
       }
+      notifications: {
+        Row: {
+          created_at: string
+          id: string
+          is_read: boolean
+          link: string | null
+          message: string
+          metadata: Json | null
+          title: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message: string
+          metadata?: Json | null
+          title: string
+          type?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_read?: boolean
+          link?: string | null
+          message?: string
+          metadata?: Json | null
+          title?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       permissions: {
         Row: {
           can_create: boolean | null
@@ -488,6 +524,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      get_approval_notification_users: {
+        Args: { approval_level: string }
+        Returns: {
+          email: string
+          full_name: string
+          user_id: string
+        }[]
+      }
       get_user_center_id: { Args: { _user_id: string }; Returns: string }
       get_user_permissions: {
         Args: { _user_id: string }
