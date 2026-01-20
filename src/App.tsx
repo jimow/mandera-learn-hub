@@ -12,6 +12,7 @@ import Teachers from "./pages/Teachers";
 import Centers from "./pages/Centers";
 import UsersManagement from "./pages/UsersManagement";
 import RolesManagement from "./pages/RolesManagement";
+import InitialSetup from "./pages/InitialSetup";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -45,6 +46,14 @@ function AppRoutes() {
       <Route
         path="/login"
         element={session ? <Navigate to="/" replace /> : <Login />}
+      />
+      <Route
+        path="/setup"
+        element={
+          <ProtectedRoute>
+            <InitialSetup />
+          </ProtectedRoute>
+        }
       />
       <Route
         path="/"
