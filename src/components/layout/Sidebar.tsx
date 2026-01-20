@@ -6,6 +6,7 @@ import {
   School,
   UserCog,
   Shield,
+  ClipboardCheck,
   LogOut,
   Menu,
   X,
@@ -21,7 +22,7 @@ interface SidebarProps {
 export function Sidebar({ onLogout }: SidebarProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { hasPermission, isSuperAdmin, roles } = useAuth();
+  const { hasPermission, hasRole, isSuperAdmin, isAdmin, roles } = useAuth();
 
   // Build navigation based on permissions
   const navigation = [
@@ -54,6 +55,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/users", 
       icon: UserCog,
       visible: hasPermission("users", "read") || isSuperAdmin(),
+    },
+    { 
+      name: "Approvals", 
+      href: "/approvals", 
+      icon: ClipboardCheck,
+      visible: hasRole("education_officer") || hasRole("governor") || isAdmin(),
     },
     { 
       name: "Roles & Permissions", 

@@ -12,6 +12,7 @@ import Teachers from "./pages/Teachers";
 import Centers from "./pages/Centers";
 import UsersManagement from "./pages/UsersManagement";
 import RolesManagement from "./pages/RolesManagement";
+import StudentApprovals from "./pages/StudentApprovals";
 import InitialSetup from "./pages/InitialSetup";
 import NotFound from "./pages/NotFound";
 
@@ -111,6 +112,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout onLogout={signOut}>
               <RolesManagement />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/approvals"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <StudentApprovals />
             </DashboardLayout>
           </ProtectedRoute>
         }
