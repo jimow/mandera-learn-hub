@@ -20,7 +20,9 @@ import {
 import { TeacherDialog } from "@/components/teachers/TeacherDialog";
 import { TeacherTransferDialog } from "@/components/teachers/TeacherTransferDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
+import { TablePagination } from "@/components/shared/TablePagination";
 import { useTeachers, useDeleteTeacher } from "@/hooks/useTeachers";
+import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -48,6 +50,18 @@ export default function Teachers() {
     teacher.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     teacher.employee_number.toLowerCase().includes(searchQuery.toLowerCase())
   ) || [];
+
+  const {
+    paginatedData,
+    currentPage,
+    totalPages,
+    startIndex,
+    endIndex,
+    totalItems,
+    itemsPerPage,
+    goToPage,
+    setItemsPerPage,
+  } = usePagination({ data: filteredTeachers });
 
   const handleEdit = (teacher: Teacher) => {
     setEditingTeacher(teacher);
@@ -115,7 +129,7 @@ export default function Teachers() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredTeachers.map((teacher) => (
+              {paginatedData.map((teacher) => (
                 <TableRow key={teacher.id}>
                   <TableCell className="font-mono text-sm">{teacher.employee_number}</TableCell>
                   <TableCell className="font-medium">{teacher.full_name}</TableCell>
@@ -162,6 +176,16 @@ export default function Teachers() {
             </TableBody>
           </Table>
         )}
+        <TablePagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          startIndex={startIndex}
+          endIndex={endIndex}
+          totalItems={totalItems}
+          itemsPerPage={itemsPerPage}
+          onPageChange={goToPage}
+          onItemsPerPageChange={setItemsPerPage}
+        />
       </div>
 
       <TeacherDialog open={dialogOpen} onOpenChange={setDialogOpen} teacher={editingTeacher} />
