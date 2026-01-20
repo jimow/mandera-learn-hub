@@ -11,6 +11,7 @@ interface Permission {
   can_read: boolean;
   can_update: boolean;
   can_delete: boolean;
+  can_transfer: boolean;
 }
 
 interface UserProfile {
@@ -33,7 +34,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
-  hasPermission: (resource: string, action: "create" | "read" | "update" | "delete") => boolean;
+  hasPermission: (resource: string, action: "create" | "read" | "update" | "delete" | "transfer") => boolean;
   isSuperAdmin: () => boolean;
   isAdmin: () => boolean;
   refreshRoles: () => Promise<void>;
@@ -142,7 +143,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const hasPermission = (
     resource: string,
-    action: "create" | "read" | "update" | "delete"
+    action: "create" | "read" | "update" | "delete" | "transfer"
   ): boolean => {
     // Super admins always have full access
     if (roles.includes("super_admin")) return true;
@@ -159,6 +160,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return permission.can_update;
       case "delete":
         return permission.can_delete;
+      case "transfer":
+        return permission.can_transfer;
       default:
         return false;
     }
