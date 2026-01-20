@@ -3,7 +3,8 @@ import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCenters } from "@/hooks/useCenters";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, AlertCircle } from "lucide-react";
+import { MapPin, AlertCircle, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
 
 // Mandera County approximate center coordinates
 const MANDERA_CENTER: [number, number] = [40.0, 3.9];
@@ -14,42 +15,51 @@ export function CentersMap() {
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
+  const [tokenLoading, setTokenLoading] = useState(true);
   const { data: centers } = useCenters();
 
   useEffect(() => {
-    if (!mapContainer.current || map.current) return;
+    const initializeMap = async () => {
+      if (!mapContainer.current || map.current) return;
 
-    const token = import.meta.env.VITE_MAPBOX_PUBLIC_TOKEN;
-    
-    if (!token) {
-      setMapError("Mapbox token not configured");
-      return;
-    }
+      try {
+        // Fetch Mapbox token from edge function
+        const { data, error } = await supabase.functions.invoke("get-mapbox-token");
+        
+        if (error || !data?.token) {
+          setMapError("Mapbox token not configured");
+          setTokenLoading(false);
+          return;
+        }
 
-    mapboxgl.accessToken = token;
+        mapboxgl.accessToken = data.token;
+        setTokenLoading(false);
 
-    try {
-      map.current = new mapboxgl.Map({
-        container: mapContainer.current,
-        style: "mapbox://styles/mapbox/streets-v12",
-        center: MANDERA_CENTER,
-        zoom: INITIAL_ZOOM,
-      });
+        map.current = new mapboxgl.Map({
+          container: mapContainer.current,
+          style: "mapbox://styles/mapbox/streets-v12",
+          center: MANDERA_CENTER,
+          zoom: INITIAL_ZOOM,
+        });
 
-      map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+        map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
-      map.current.on("load", () => {
-        setMapLoaded(true);
-      });
+        map.current.on("load", () => {
+          setMapLoaded(true);
+        });
 
-      map.current.on("error", (e) => {
-        console.error("Map error:", e);
-        setMapError("Failed to load map");
-      });
-    } catch (error) {
-      console.error("Map initialization error:", error);
-      setMapError("Failed to initialize map");
-    }
+        map.current.on("error", (e) => {
+          console.error("Map error:", e);
+          setMapError("Failed to load map");
+        });
+      } catch (error) {
+        console.error("Map initialization error:", error);
+        setMapError("Failed to initialize map");
+        setTokenLoading(false);
+      }
+    };
+
+    initializeMap();
 
     return () => {
       if (map.current) {
@@ -91,6 +101,27 @@ export function CentersMap() {
 
   const centersWithCoords = centers?.filter((c) => c.latitude && c.longitude).length || 0;
   const totalCenters = centers?.length || 0;
+
+  if (tokenLoading) {
+    return (
+      <Card className="animate-fade-in">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg">
+            <MapPin className="w-5 h-5 text-primary" />
+            ECDE Centers Map
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="h-[400px] rounded-lg bg-muted flex items-center justify-center">
+            <div className="text-center text-muted-foreground">
+              <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-50" />
+              <p>Loading map...</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (mapError) {
     return (

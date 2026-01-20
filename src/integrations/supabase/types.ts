@@ -229,6 +229,7 @@ export type Database = {
           approved_by_ministry: string | null
           approved_by_subcounty: string | null
           center_id: string | null
+          class_level: Database["public"]["Enums"]["class_level"] | null
           created_at: string
           created_by: string | null
           date_of_birth: string
@@ -255,6 +256,7 @@ export type Database = {
           approved_by_ministry?: string | null
           approved_by_subcounty?: string | null
           center_id?: string | null
+          class_level?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           created_by?: string | null
           date_of_birth: string
@@ -281,6 +283,7 @@ export type Database = {
           approved_by_ministry?: string | null
           approved_by_subcounty?: string | null
           center_id?: string | null
+          class_level?: Database["public"]["Enums"]["class_level"] | null
           created_at?: string
           created_by?: string | null
           date_of_birth?: string
@@ -575,6 +578,7 @@ export type Database = {
         | "approved_subcounty"
         | "approved_ministry"
         | "rejected"
+      class_level: "pp1" | "pp2"
       gender: "male" | "female"
     }
     CompositeTypes: {
@@ -719,6 +723,7 @@ export const Constants = {
         "approved_ministry",
         "rejected",
       ],
+      class_level: ["pp1", "pp2"],
       gender: ["male", "female"],
     },
   },

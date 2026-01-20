@@ -4,6 +4,7 @@ import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
 import { CenterDistribution } from "@/components/dashboard/CenterDistribution";
 import { CentersMap } from "@/components/dashboard/CentersMap";
+import { StudentStatistics } from "@/components/dashboard/StudentStatistics";
 import { useStudents } from "@/hooks/useStudents";
 import { useTeachers } from "@/hooks/useTeachers";
 import { useCenters } from "@/hooks/useCenters";
@@ -20,6 +21,13 @@ export default function Dashboard() {
   // Calculate total capacity and enrollment rate
   const totalCapacity = centers?.reduce((sum, c) => sum + (c.capacity || 50), 0) || 1;
   const enrollmentRate = Math.round((totalStudents / totalCapacity) * 100);
+
+  // Transform students data for statistics
+  const studentsForStats = students?.map(s => ({
+    gender: s.gender,
+    class_level: (s as any).class_level as "pp1" | "pp2" | null,
+    ecde_centers: s.ecde_centers,
+  })) || [];
 
   return (
     <div className="space-y-8">
@@ -58,6 +66,11 @@ export default function Dashboard() {
           trend={{ value: 8, isPositive: true }}
         />
       </div>
+
+      {/* Student Statistics */}
+      {students && students.length > 0 && (
+        <StudentStatistics students={studentsForStats} />
+      )}
 
       {/* Map */}
       <CentersMap />

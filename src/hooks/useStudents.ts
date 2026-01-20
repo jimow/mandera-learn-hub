@@ -8,7 +8,7 @@ type StudentInsert = Database["public"]["Tables"]["students"]["Insert"];
 type StudentUpdate = Database["public"]["Tables"]["students"]["Update"];
 
 interface StudentWithCenter extends Student {
-  ecde_centers: { name: string } | null;
+  ecde_centers: { name: string; sub_county: string; ward: string } | null;
 }
 
 export function useStudents() {
@@ -17,7 +17,7 @@ export function useStudents() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
-        .select("*, ecde_centers(name)")
+        .select("*, ecde_centers(name, sub_county, ward)")
         .order("created_at", { ascending: false });
       
       if (error) throw error;
@@ -32,7 +32,7 @@ export function useStudent(id: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("students")
-        .select("*, ecde_centers(name)")
+        .select("*, ecde_centers(name, sub_county, ward)")
         .eq("id", id)
         .maybeSingle();
       
