@@ -17,9 +17,17 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useCreateCenter, useUpdateCenter } from "@/hooks/useCenters";
+import { useSubCounties, useWards } from "@/hooks/useSubCounties";
 import type { Database } from "@/integrations/supabase/types";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 
 type Center = Database["public"]["Tables"]["ecde_centers"]["Row"];
 
@@ -33,6 +41,8 @@ const formSchema = z.object({
   contact_phone: z.string().optional(),
   contact_email: z.string().email().optional().or(z.literal("")),
   established_date: z.string().optional(),
+  latitude: z.number().min(-90).max(90).optional().nullable(),
+  longitude: z.number().min(-180).max(180).optional().nullable(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -47,6 +57,10 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
   const createCenter = useCreateCenter();
   const updateCenter = useUpdateCenter();
   const isEditing = !!center;
+  
+  const { data: subCounties } = useSubCounties();
+  const [selectedSubCountyId, setSelectedSubCountyId] = useState<string>("");
+  const { data: wards } = useWards(selectedSubCountyId);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -60,11 +74,19 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
       contact_phone: "",
       contact_email: "",
       established_date: "",
+      latitude: null,
+      longitude: null,
     },
   });
 
   useEffect(() => {
     if (center) {
+      // Find sub-county ID by name
+      const subCounty = subCounties?.find(sc => sc.name === center.sub_county);
+      if (subCounty) {
+        setSelectedSubCountyId(subCounty.id);
+      }
+      
       form.reset({
         name: center.name,
         code: center.code,
@@ -75,8 +97,11 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
         contact_phone: center.contact_phone || "",
         contact_email: center.contact_email || "",
         established_date: center.established_date || "",
+        latitude: (center as any).latitude || null,
+        longitude: (center as any).longitude || null,
       });
     } else {
+      setSelectedSubCountyId("");
       form.reset({
         name: "",
         code: "",
@@ -87,9 +112,18 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
         contact_phone: "",
         contact_email: "",
         established_date: "",
+        latitude: null,
+        longitude: null,
       });
     }
-  }, [center, form]);
+  }, [center, form, subCounties]);
+
+  const handleSubCountyChange = (subCountyName: string) => {
+    const subCounty = subCounties?.find(sc => sc.name === subCountyName);
+    setSelectedSubCountyId(subCounty?.id || "");
+    form.setValue("sub_county", subCountyName);
+    form.setValue("ward", ""); // Reset ward when sub-county changes
+  };
 
   const onSubmit = async (data: FormData) => {
     try {
@@ -103,6 +137,8 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
         contact_phone: data.contact_phone || null,
         contact_email: data.contact_email || null,
         established_date: data.established_date || null,
+        latitude: data.latitude,
+        longitude: data.longitude,
       };
       
       if (isEditing && center) {
@@ -222,9 +258,23 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Sub-County</FormLabel>
-                      <FormControl>
-                        <Input placeholder="Enter sub-county" {...field} />
-                      </FormControl>
+                      <Select 
+                        onValueChange={handleSubCountyChange} 
+                        value={field.value}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select sub-county" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {subCounties?.map((sc) => (
+                            <SelectItem key={sc.id} value={sc.name}>
+                              {sc.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -235,8 +285,67 @@ export function CenterDialog({ open, onOpenChange, center }: CenterDialogProps) 
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>Ward</FormLabel>
+                      <Select 
+                        onValueChange={field.onChange} 
+                        value={field.value}
+                        disabled={!selectedSubCountyId}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select ward" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {wards?.map((ward) => (
+                            <SelectItem key={ward.id} value={ward.name}>
+                              {ward.name}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+              </div>
+              
+              {/* Geo Coordinates */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <FormField
+                  control={form.control}
+                  name="latitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Latitude</FormLabel>
                       <FormControl>
-                        <Input placeholder="Enter ward" {...field} />
+                        <Input 
+                          type="number" 
+                          step="0.000001"
+                          placeholder="e.g., 3.9366" 
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="longitude"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Longitude</FormLabel>
+                      <FormControl>
+                        <Input 
+                          type="number" 
+                          step="0.000001"
+                          placeholder="e.g., 41.8569" 
+                          {...field}
+                          value={field.value ?? ""}
+                          onChange={(e) => field.onChange(e.target.value ? parseFloat(e.target.value) : null)}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

@@ -19,11 +19,26 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { StudentDialog } from "@/components/students/StudentDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
+import { DataActions } from "@/components/shared/DataActions";
 import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
 import { useAuth } from "@/contexts/AuthContext";
 import type { Database } from "@/integrations/supabase/types";
 
 type Student = Database["public"]["Tables"]["students"]["Row"];
+
+const getApprovalStatusBadge = (status: string | null) => {
+  switch (status) {
+    case "approved_ministry":
+      return <Badge className="bg-green-600 text-white">Approved</Badge>;
+    case "approved_subcounty":
+      return <Badge className="bg-amber-500 text-white">Pending Ministry</Badge>;
+    case "rejected":
+      return <Badge variant="destructive">Rejected</Badge>;
+    case "pending":
+    default:
+      return <Badge variant="outline">Pending</Badge>;
+  }
+};
 
 export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
@@ -63,6 +78,22 @@ export default function Students() {
     }
   };
 
+  // Prepare data for export (remove nested objects and format for CSV)
+  const exportData = filteredStudents.map(student => ({
+    admission_number: student.admission_number,
+    full_name: student.full_name,
+    gender: student.gender,
+    date_of_birth: student.date_of_birth,
+    center: (student as any).ecde_centers?.name || "Unassigned",
+    parent_name: student.parent_name,
+    parent_phone: student.parent_phone,
+    parent_email: student.parent_email || "",
+    address: student.address || "",
+    admission_date: student.admission_date || "",
+    approval_status: (student as any).approval_status || "pending",
+    is_active: student.is_active ? "Active" : "Inactive",
+  }));
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -70,12 +101,15 @@ export default function Students() {
           <h1 className="page-title">Students</h1>
           <p className="page-description">Manage student enrollment and records</p>
         </div>
-        {canCreate && (
-          <Button onClick={() => { setEditingStudent(null); setDialogOpen(true); }} className="gap-2">
-            <Plus className="w-4 h-4" />
-            Add Student
-          </Button>
-        )}
+        <div className="flex gap-2">
+          <DataActions data={exportData} filename="students" />
+          {canCreate && (
+            <Button onClick={() => { setEditingStudent(null); setDialogOpen(true); }} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Student
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4">
@@ -108,6 +142,7 @@ export default function Students() {
                 <TableHead>Gender</TableHead>
                 <TableHead>Center</TableHead>
                 <TableHead>Parent/Guardian</TableHead>
+                <TableHead>Approval</TableHead>
                 <TableHead>Status</TableHead>
                 <TableHead className="w-12"></TableHead>
               </TableRow>
@@ -118,12 +153,15 @@ export default function Students() {
                   <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
                   <TableCell className="font-medium">{student.full_name}</TableCell>
                   <TableCell className="capitalize">{student.gender}</TableCell>
-                  <TableCell>{student.ecde_centers?.name || "Unassigned"}</TableCell>
+                  <TableCell>{(student as any).ecde_centers?.name || "Unassigned"}</TableCell>
                   <TableCell>
                     <div>
                       <p className="text-sm">{student.parent_name}</p>
                       <p className="text-xs text-muted-foreground">{student.parent_phone}</p>
                     </div>
+                  </TableCell>
+                  <TableCell>
+                    {getApprovalStatusBadge((student as any).approval_status)}
                   </TableCell>
                   <TableCell>
                     <Badge variant={student.is_active ? "default" : "secondary"}>
