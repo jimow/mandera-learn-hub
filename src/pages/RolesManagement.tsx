@@ -25,7 +25,7 @@ const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
   viewer: "Observer. Read-only access to students, teachers, and centers.",
 };
 
-const RESOURCES = ["students", "teachers", "centers", "users", "roles", "dashboard"];
+const RESOURCES = ["students", "teachers", "centers", "users", "roles", "dashboard", "approvals"];
 
 function formatRole(role: string) {
   return role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());

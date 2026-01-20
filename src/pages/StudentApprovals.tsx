@@ -43,10 +43,13 @@ export default function StudentApprovals() {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
 
-  const { hasRole, isSuperAdmin, isAdmin } = useAuth();
+  const { hasPermission } = useAuth();
   
-  const canApproveSubcounty = hasRole("education_officer") || isAdmin();
-  const canApproveMinistry = hasRole("super_admin") || hasRole("admin") || hasRole("governor");
+  // Permission-based access control for approvals
+  const canViewApprovals = hasPermission("approvals", "read");
+  const canApproveSubcounty = hasPermission("approvals", "update");
+  const canApproveMinistry = hasPermission("approvals", "update");
+  const canReject = hasPermission("approvals", "delete");
 
   const approveSubcounty = useApproveBySubcounty();
   const approveMinistry = useApproveByMinistry();
@@ -64,7 +67,7 @@ export default function StudentApprovals() {
       if (error) throw error;
       return data as Student[];
     },
-    enabled: canApproveSubcounty,
+    enabled: canViewApprovals,
   });
 
   // Fetch students awaiting ministry approval
@@ -79,7 +82,7 @@ export default function StudentApprovals() {
       if (error) throw error;
       return data as Student[];
     },
-    enabled: canApproveMinistry,
+    enabled: canViewApprovals,
   });
 
   // Fetch recently approved students
@@ -220,15 +223,17 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Approve
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleReject(student)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject
-                        </Button>
+                        {canReject && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => handleReject(student)}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject
+                          </Button>
+                        )}
                       </>
                     )}
                     {showApproveMinistry && canApproveMinistry && (
@@ -242,15 +247,17 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Final Approve
                         </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleReject(student)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject
-                        </Button>
+                        {canReject && (
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => handleReject(student)}
+                          >
+                            <XCircle className="w-4 h-4" />
+                            Reject
+                          </Button>
+                        )}
                       </>
                     )}
                   </div>
@@ -330,13 +337,13 @@ export default function StudentApprovals() {
       {/* Tabs */}
       <Tabs defaultValue="pending" className="space-y-4">
         <TabsList>
-          {canApproveSubcounty && (
+          {canViewApprovals && (
             <TabsTrigger value="pending" className="gap-2">
               <Clock className="w-4 h-4" />
               Pending ({pendingStudents?.length || 0})
             </TabsTrigger>
           )}
-          {canApproveMinistry && (
+          {canViewApprovals && (
             <TabsTrigger value="ministry" className="gap-2">
               <Building2 className="w-4 h-4" />
               Awaiting Ministry ({awaitingMinistry?.length || 0})
@@ -352,7 +359,7 @@ export default function StudentApprovals() {
           </TabsTrigger>
         </TabsList>
 
-        {canApproveSubcounty && (
+        {canViewApprovals && (
           <TabsContent value="pending">
             <Card>
               <CardHeader>
@@ -372,7 +379,7 @@ export default function StudentApprovals() {
           </TabsContent>
         )}
 
-        {canApproveMinistry && (
+        {canViewApprovals && (
           <TabsContent value="ministry">
             <Card>
               <CardHeader>
