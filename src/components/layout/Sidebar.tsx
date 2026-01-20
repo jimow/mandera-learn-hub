@@ -15,6 +15,7 @@ import {
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/contexts/AuthContext";
+import { useUserCenterAssignments } from "@/hooks/useUserCenterAssignment";
 
 interface SidebarProps {
   onLogout: () => void;
@@ -23,7 +24,16 @@ interface SidebarProps {
 export function Sidebar({ onLogout }: SidebarProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const { hasPermission, hasRole, isSuperAdmin, isAdmin, roles } = useAuth();
+  const { hasPermission, hasRole, isSuperAdmin, isAdmin, roles, user } = useAuth();
+  
+  const isCenterAdmin = hasRole("center_admin");
+  const { data: centerAssignments } = useUserCenterAssignments(user?.id || "");
+  const hasMultipleCenters = (centerAssignments?.filter(a => a.is_active)?.length || 0) > 1;
+
+  // For center admins, only show ECDE Centers if they have multiple center assignments
+  const showCentersMenu = isCenterAdmin 
+    ? hasMultipleCenters 
+    : hasPermission("centers", "read");
 
   // Build navigation based on permissions
   const navigation = [
@@ -49,7 +59,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "ECDE Centers", 
       href: "/centers", 
       icon: School,
-      visible: hasPermission("centers", "read"),
+      visible: showCentersMenu,
     },
     { 
       name: "Administrative Areas", 
