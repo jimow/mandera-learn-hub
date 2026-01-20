@@ -11,6 +11,7 @@ import Students from "./pages/Students";
 import Teachers from "./pages/Teachers";
 import Centers from "./pages/Centers";
 import UsersManagement from "./pages/UsersManagement";
+import RolesManagement from "./pages/RolesManagement";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -91,6 +92,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout onLogout={signOut}>
               <UsersManagement />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/roles"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <RolesManagement />
             </DashboardLayout>
           </ProtectedRoute>
         }

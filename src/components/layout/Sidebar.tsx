@@ -5,20 +5,14 @@ import {
   GraduationCap,
   School,
   UserCog,
+  Shield,
   LogOut,
   Menu,
   X,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
-
-const navigation = [
-  { name: "Dashboard", href: "/", icon: LayoutDashboard },
-  { name: "Students", href: "/students", icon: GraduationCap },
-  { name: "Teachers", href: "/teachers", icon: Users },
-  { name: "ECDE Centers", href: "/centers", icon: School },
-  { name: "Users", href: "/users", icon: UserCog },
-];
+import { useAuth } from "@/contexts/AuthContext";
 
 interface SidebarProps {
   onLogout: () => void;
@@ -27,6 +21,47 @@ interface SidebarProps {
 export function Sidebar({ onLogout }: SidebarProps) {
   const location = useLocation();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const { hasPermission, isSuperAdmin, roles } = useAuth();
+
+  // Build navigation based on permissions
+  const navigation = [
+    { 
+      name: "Dashboard", 
+      href: "/", 
+      icon: LayoutDashboard,
+      visible: hasPermission("dashboard", "read") || roles.length > 0,
+    },
+    { 
+      name: "Students", 
+      href: "/students", 
+      icon: GraduationCap,
+      visible: hasPermission("students", "read"),
+    },
+    { 
+      name: "Teachers", 
+      href: "/teachers", 
+      icon: Users,
+      visible: hasPermission("teachers", "read"),
+    },
+    { 
+      name: "ECDE Centers", 
+      href: "/centers", 
+      icon: School,
+      visible: hasPermission("centers", "read"),
+    },
+    { 
+      name: "Users", 
+      href: "/users", 
+      icon: UserCog,
+      visible: hasPermission("users", "read") || isSuperAdmin(),
+    },
+    { 
+      name: "Roles & Permissions", 
+      href: "/roles", 
+      icon: Shield,
+      visible: isSuperAdmin(),
+    },
+  ].filter(item => item.visible);
 
   return (
     <>
