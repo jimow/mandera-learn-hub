@@ -1,11 +1,9 @@
-import { useEffect, useState } from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { supabase } from "@/integrations/supabase/client";
-import { Session } from "@supabase/supabase-js";
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
 import { DashboardLayout } from "@/components/layout/DashboardLayout";
 import Login from "./pages/Login";
 import Dashboard from "./pages/Dashboard";
@@ -18,26 +16,7 @@ import NotFound from "./pages/NotFound";
 const queryClient = new QueryClient();
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const [session, setSession] = useState<Session | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-        setLoading(false);
-      }
-    );
-
-    // Then check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoading(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { session, loading } = useAuth();
 
   if (loading) {
     return (
@@ -58,25 +37,7 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function AppRoutes() {
-  const [session, setSession] = useState<Session | null>(null);
-
-  useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setSession(session);
-      }
-    );
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogout = async () => {
-    await supabase.auth.signOut();
-  };
+  const { session, signOut } = useAuth();
 
   return (
     <Routes>
@@ -88,7 +49,7 @@ function AppRoutes() {
         path="/"
         element={
           <ProtectedRoute>
-            <DashboardLayout onLogout={handleLogout}>
+            <DashboardLayout onLogout={signOut}>
               <Dashboard />
             </DashboardLayout>
           </ProtectedRoute>
@@ -98,7 +59,7 @@ function AppRoutes() {
         path="/students"
         element={
           <ProtectedRoute>
-            <DashboardLayout onLogout={handleLogout}>
+            <DashboardLayout onLogout={signOut}>
               <Students />
             </DashboardLayout>
           </ProtectedRoute>
@@ -108,7 +69,7 @@ function AppRoutes() {
         path="/teachers"
         element={
           <ProtectedRoute>
-            <DashboardLayout onLogout={handleLogout}>
+            <DashboardLayout onLogout={signOut}>
               <Teachers />
             </DashboardLayout>
           </ProtectedRoute>
@@ -118,7 +79,7 @@ function AppRoutes() {
         path="/centers"
         element={
           <ProtectedRoute>
-            <DashboardLayout onLogout={handleLogout}>
+            <DashboardLayout onLogout={signOut}>
               <Centers />
             </DashboardLayout>
           </ProtectedRoute>
@@ -128,7 +89,7 @@ function AppRoutes() {
         path="/users"
         element={
           <ProtectedRoute>
-            <DashboardLayout onLogout={handleLogout}>
+            <DashboardLayout onLogout={signOut}>
               <UsersManagement />
             </DashboardLayout>
           </ProtectedRoute>
@@ -141,13 +102,15 @@ function AppRoutes() {
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <AppRoutes />
-      </BrowserRouter>
-    </TooltipProvider>
+    <AuthProvider>
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <AppRoutes />
+        </BrowserRouter>
+      </TooltipProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 
