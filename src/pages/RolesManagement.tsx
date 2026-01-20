@@ -159,10 +159,11 @@ export default function RolesManagement() {
                         <thead className="bg-muted/50">
                           <tr>
                             <th className="text-left p-3 font-medium text-sm">Resource</th>
-                            <th className="text-center p-3 font-medium text-sm w-24">Create</th>
-                            <th className="text-center p-3 font-medium text-sm w-24">Read</th>
-                            <th className="text-center p-3 font-medium text-sm w-24">Update</th>
-                            <th className="text-center p-3 font-medium text-sm w-24">Delete</th>
+                            <th className="text-center p-3 font-medium text-sm w-20">Create</th>
+                            <th className="text-center p-3 font-medium text-sm w-20">Read</th>
+                            <th className="text-center p-3 font-medium text-sm w-20">Update</th>
+                            <th className="text-center p-3 font-medium text-sm w-20">Delete</th>
+                            <th className="text-center p-3 font-medium text-sm w-20">Transfer</th>
                           </tr>
                         </thead>
                         <tbody>
@@ -195,6 +196,13 @@ export default function RolesManagement() {
                                   checked={perm.can_delete ?? false}
                                   onCheckedChange={(v) => handlePermissionChange(perm.id, "can_delete", v)}
                                   disabled={saving || role === "super_admin"}
+                                />
+                              </td>
+                              <td className="p-3 text-center">
+                                <Switch
+                                  checked={perm.can_transfer ?? false}
+                                  onCheckedChange={(v) => handlePermissionChange(perm.id, "can_transfer", v)}
+                                  disabled={saving || role === "super_admin" || perm.resource !== "teachers"}
                                 />
                               </td>
                             </tr>

@@ -177,6 +177,7 @@ export type Database = {
           can_create: boolean | null
           can_delete: boolean | null
           can_read: boolean | null
+          can_transfer: boolean | null
           can_update: boolean | null
           created_at: string
           id: string
@@ -188,6 +189,7 @@ export type Database = {
           can_create?: boolean | null
           can_delete?: boolean | null
           can_read?: boolean | null
+          can_transfer?: boolean | null
           can_update?: boolean | null
           created_at?: string
           id?: string
@@ -199,6 +201,7 @@ export type Database = {
           can_create?: boolean | null
           can_delete?: boolean | null
           can_read?: boolean | null
+          can_transfer?: boolean | null
           can_update?: boolean | null
           created_at?: string
           id?: string
@@ -365,6 +368,70 @@ export type Database = {
             columns: ["county_id"]
             isOneToOne: false
             referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      teacher_transfers: {
+        Row: {
+          created_at: string
+          from_center_id: string | null
+          id: string
+          notes: string | null
+          reason: string | null
+          status: string
+          teacher_id: string
+          to_center_id: string
+          transfer_date: string
+          transferred_by: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          from_center_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          status?: string
+          teacher_id: string
+          to_center_id: string
+          transfer_date?: string
+          transferred_by?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          from_center_id?: string | null
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          status?: string
+          teacher_id?: string
+          to_center_id?: string
+          transfer_date?: string
+          transferred_by?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "teacher_transfers_from_center_id_fkey"
+            columns: ["from_center_id"]
+            isOneToOne: false
+            referencedRelation: "ecde_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_transfers_teacher_id_fkey"
+            columns: ["teacher_id"]
+            isOneToOne: false
+            referencedRelation: "teachers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "teacher_transfers_to_center_id_fkey"
+            columns: ["to_center_id"]
+            isOneToOne: false
+            referencedRelation: "ecde_centers"
             referencedColumns: ["id"]
           },
         ]
@@ -577,6 +644,7 @@ export type Database = {
           can_create: boolean
           can_delete: boolean
           can_read: boolean
+          can_transfer: boolean
           can_update: boolean
           resource: string
         }[]

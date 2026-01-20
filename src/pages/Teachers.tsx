@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Mail, Phone } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Mail, Phone, ArrowRightLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -11,6 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { TeacherDialog } from "@/components/teachers/TeacherDialog";
+import { TeacherTransferDialog } from "@/components/teachers/TeacherTransferDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { useTeachers, useDeleteTeacher } from "@/hooks/useTeachers";
 import { useAuth } from "@/contexts/AuthContext";
@@ -28,6 +29,8 @@ export default function Teachers() {
   const [editingTeacher, setEditingTeacher] = useState<Teacher | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [teacherToDelete, setTeacherToDelete] = useState<Teacher | null>(null);
+  const [transferDialogOpen, setTransferDialogOpen] = useState(false);
+  const [teacherToTransfer, setTeacherToTransfer] = useState<Teacher | null>(null);
   
   const { data: teachers, isLoading } = useTeachers();
   const deleteTeacher = useDeleteTeacher();
@@ -36,6 +39,7 @@ export default function Teachers() {
   const canCreate = hasPermission("teachers", "create");
   const canUpdate = hasPermission("teachers", "update");
   const canDelete = hasPermission("teachers", "delete");
+  const canTransfer = hasPermission("teachers", "transfer");
 
   const filteredTeachers = teachers?.filter((teacher) =>
     teacher.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -50,6 +54,11 @@ export default function Teachers() {
   const handleDelete = (teacher: Teacher) => {
     setTeacherToDelete(teacher);
     setDeleteDialogOpen(true);
+  };
+
+  const handleTransfer = (teacher: Teacher) => {
+    setTeacherToTransfer(teacher);
+    setTransferDialogOpen(true);
   };
 
   const confirmDelete = async () => {
@@ -108,6 +117,7 @@ export default function Teachers() {
                   <DropdownMenuContent align="end">
                     <DropdownMenuItem className="gap-2"><Eye className="w-4 h-4" /> View Profile</DropdownMenuItem>
                     {canUpdate && <DropdownMenuItem className="gap-2" onClick={() => handleEdit(teacher)}><Edit className="w-4 h-4" /> Edit</DropdownMenuItem>}
+                    {canTransfer && <DropdownMenuItem className="gap-2" onClick={() => handleTransfer(teacher)}><ArrowRightLeft className="w-4 h-4" /> Transfer</DropdownMenuItem>}
                     {canDelete && <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(teacher)}><Trash2 className="w-4 h-4" /> Delete</DropdownMenuItem>}
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -127,6 +137,7 @@ export default function Teachers() {
       )}
 
       <TeacherDialog open={dialogOpen} onOpenChange={setDialogOpen} teacher={editingTeacher} />
+      <TeacherTransferDialog open={transferDialogOpen} onOpenChange={setTransferDialogOpen} teacher={teacherToTransfer} />
       <DeleteConfirmDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen} onConfirm={confirmDelete} title="Delete Teacher" description={`Are you sure you want to delete ${teacherToDelete?.full_name}? This action cannot be undone.`} isLoading={deleteTeacher.isPending} />
     </div>
   );
