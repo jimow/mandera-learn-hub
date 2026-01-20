@@ -25,7 +25,8 @@ const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
   viewer: "Observer. Read-only access to students, teachers, and centers.",
 };
 
-const RESOURCES = ["students", "teachers", "centers", "users", "roles", "dashboard", "approvals_level1", "approvals_level2"];
+const RESOURCES = ["students", "teachers", "centers", "users", "roles", "dashboard"];
+const APPROVAL_LEVELS = ["approvals_level1", "approvals_level2"];
 
 function formatRole(role: string) {
   return role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -75,6 +76,16 @@ export default function RolesManagement() {
   }, {} as Record<string, typeof permissions>) || {};
 
   const allRoles = Object.keys(permissionsByRole) as AppRole[];
+
+  // Helper to get approval permission for a role
+  const getApprovalPermission = (role: string, level: string) => {
+    return permissionsByRole[role]?.find(p => p.resource === level);
+  };
+
+  // Filter out approval resources from regular permissions display
+  const getRegularPermissions = (role: string) => {
+    return permissionsByRole[role]?.filter(p => !APPROVAL_LEVELS.includes(p.resource)) || [];
+  };
 
   const handlePermissionChange = async (permissionId: string, field: string, value: boolean) => {
     setSaving(true);
@@ -155,33 +166,33 @@ export default function RolesManagement() {
                           </tr>
                         </thead>
                         <tbody>
-                          {permissionsByRole[role]?.map((perm) => (
+                          {getRegularPermissions(role)?.map((perm) => (
                             <tr key={perm.id} className="border-t">
                               <td className="p-3 font-medium capitalize">{perm.resource}</td>
                               <td className="p-3 text-center">
                                 <Switch
-                                  checked={perm.can_create}
+                                  checked={perm.can_create ?? false}
                                   onCheckedChange={(v) => handlePermissionChange(perm.id, "can_create", v)}
                                   disabled={saving || role === "super_admin"}
                                 />
                               </td>
                               <td className="p-3 text-center">
                                 <Switch
-                                  checked={perm.can_read}
+                                  checked={perm.can_read ?? false}
                                   onCheckedChange={(v) => handlePermissionChange(perm.id, "can_read", v)}
                                   disabled={saving || role === "super_admin"}
                                 />
                               </td>
                               <td className="p-3 text-center">
                                 <Switch
-                                  checked={perm.can_update}
+                                  checked={perm.can_update ?? false}
                                   onCheckedChange={(v) => handlePermissionChange(perm.id, "can_update", v)}
                                   disabled={saving || role === "super_admin"}
                                 />
                               </td>
                               <td className="p-3 text-center">
                                 <Switch
-                                  checked={perm.can_delete}
+                                  checked={perm.can_delete ?? false}
                                   onCheckedChange={(v) => handlePermissionChange(perm.id, "can_delete", v)}
                                   disabled={saving || role === "super_admin"}
                                 />
@@ -191,6 +202,56 @@ export default function RolesManagement() {
                         </tbody>
                       </table>
                     </div>
+                    
+                    {/* Approval Permissions - Simplified */}
+                    <div className="mt-4">
+                      <h4 className="text-sm font-medium mb-3">Approval Permissions</h4>
+                      <div className="border rounded-lg overflow-hidden">
+                        <table className="w-full">
+                          <thead className="bg-muted/50">
+                            <tr>
+                              <th className="text-left p-3 font-medium text-sm">Approval Level</th>
+                              <th className="text-center p-3 font-medium text-sm w-32">Can View</th>
+                              <th className="text-center p-3 font-medium text-sm w-32">Can Approve</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {APPROVAL_LEVELS.map((level) => {
+                              const perm = getApprovalPermission(role, level);
+                              const levelLabel = level === "approvals_level1" ? "Level 1 (Sub-County)" : "Level 2 (Ministry)";
+                              return (
+                                <tr key={level} className="border-t">
+                                  <td className="p-3 font-medium">{levelLabel}</td>
+                                  <td className="p-3 text-center">
+                                    {perm ? (
+                                      <Switch
+                                        checked={perm.can_read ?? false}
+                                        onCheckedChange={(v) => handlePermissionChange(perm.id, "can_read", v)}
+                                        disabled={saving || role === "super_admin"}
+                                      />
+                                    ) : (
+                                      <span className="text-muted-foreground text-sm">-</span>
+                                    )}
+                                  </td>
+                                  <td className="p-3 text-center">
+                                    {perm ? (
+                                      <Switch
+                                        checked={perm.can_update ?? false}
+                                        onCheckedChange={(v) => handlePermissionChange(perm.id, "can_update", v)}
+                                        disabled={saving || role === "super_admin"}
+                                      />
+                                    ) : (
+                                      <span className="text-muted-foreground text-sm">-</span>
+                                    )}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+
                     {role === "super_admin" && (
                       <p className="text-xs text-muted-foreground mt-2">
                         * Super Admin permissions cannot be modified. This role always has full access.

@@ -46,13 +46,12 @@ export default function StudentApprovals() {
   const { hasPermission } = useAuth();
   
   // Permission-based access control for approvals - Level 1 (Sub-county) and Level 2 (Ministry)
+  // can_read = view pending approvals, can_update = approve/reject at that level
   const canViewLevel1 = hasPermission("approvals_level1", "read");
   const canApproveLevel1 = hasPermission("approvals_level1", "update");
-  const canRejectLevel1 = hasPermission("approvals_level1", "delete");
   
   const canViewLevel2 = hasPermission("approvals_level2", "read");
   const canApproveLevel2 = hasPermission("approvals_level2", "update");
-  const canRejectLevel2 = hasPermission("approvals_level2", "delete");
 
   const approveSubcounty = useApproveBySubcounty();
   const approveMinistry = useApproveByMinistry();
@@ -226,17 +225,15 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Approve
                         </Button>
-                        {canRejectLevel1 && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleReject(student)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Reject
-                          </Button>
-                        )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleReject(student)}
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Reject
+                        </Button>
                       </>
                     )}
                     {showApproveLevel2 && canApproveLevel2 && (
@@ -250,17 +247,15 @@ export default function StudentApprovals() {
                           <CheckCircle className="w-4 h-4" />
                           Final Approve
                         </Button>
-                        {canRejectLevel2 && (
-                          <Button
-                            variant="destructive"
-                            size="sm"
-                            className="gap-1"
-                            onClick={() => handleReject(student)}
-                          >
-                            <XCircle className="w-4 h-4" />
-                            Reject
-                          </Button>
-                        )}
+                        <Button
+                          variant="destructive"
+                          size="sm"
+                          className="gap-1"
+                          onClick={() => handleReject(student)}
+                        >
+                          <XCircle className="w-4 h-4" />
+                          Reject
+                        </Button>
                       </>
                     )}
                   </div>
