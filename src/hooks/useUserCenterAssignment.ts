@@ -14,12 +14,16 @@ interface CenterAssignment {
     id: string;
     name: string;
     code: string;
+    location: string;
+    ward: string;
+    sub_county: string;
+    capacity: number | null;
   } | null;
 }
 
 export function useUserCenterAssignment() {
   const { user, hasRole } = useAuth();
-  const isCenterAdmin = hasRole("center_admin");
+  const isCenterBased = hasRole("center_admin") || hasRole("teacher");
 
   return useQuery({
     queryKey: ["user_center_assignment", user?.id],
@@ -28,7 +32,7 @@ export function useUserCenterAssignment() {
 
       const { data, error } = await supabase
         .from("user_center_assignments")
-        .select("*, ecde_centers(id, name, code)")
+        .select("*, ecde_centers(id, name, code, location, ward, sub_county, capacity)")
         .eq("user_id", user.id)
         .eq("is_active", true)
         .maybeSingle();
@@ -36,7 +40,7 @@ export function useUserCenterAssignment() {
       if (error) throw error;
       return data as CenterAssignment | null;
     },
-    enabled: !!user && isCenterAdmin,
+    enabled: !!user && isCenterBased,
   });
 }
 
@@ -47,7 +51,7 @@ export function useUserCenterAssignments(userId: string) {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("user_center_assignments")
-        .select("*, ecde_centers(id, name, code)")
+        .select("*, ecde_centers(id, name, code, location, ward, sub_county, capacity)")
         .eq("user_id", userId)
         .order("assigned_at", { ascending: false });
 
@@ -81,7 +85,7 @@ export function useAssignCenter() {
           assigned_by: user?.id,
           is_active: true,
         })
-        .select("*, ecde_centers(id, name, code)")
+        .select("*, ecde_centers(id, name, code, location, ward, sub_county, capacity)")
         .single();
 
       if (error) throw error;
