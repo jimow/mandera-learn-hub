@@ -40,6 +40,7 @@ const formSchema = z.object({
   gender: z.enum(["male", "female"]),
   date_of_birth: z.string().min(1, "Date of birth is required"),
   admission_number: z.string().min(1, "Admission number is required"),
+  class_level: z.enum(["pp1", "pp2"]),
   center_id: z.string().optional(),
   parent_name: z.string().min(2, "Parent name is required"),
   parent_phone: z.string().min(10, "Valid phone number required"),
@@ -76,6 +77,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
       gender: undefined,
       date_of_birth: "",
       admission_number: "",
+      class_level: "pp1",
       center_id: "",
       parent_name: "",
       parent_phone: "",
@@ -93,6 +95,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         gender: student.gender,
         date_of_birth: student.date_of_birth,
         admission_number: student.admission_number,
+        class_level: (student as any).class_level || "pp1",
         center_id: student.center_id || "",
         parent_name: student.parent_name,
         parent_phone: student.parent_phone,
@@ -107,6 +110,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         gender: undefined,
         date_of_birth: "",
         admission_number: "",
+        class_level: "pp1",
         center_id: isCenterAdmin && assignedCenterId ? assignedCenterId : "",
         parent_name: "",
         parent_phone: "",
@@ -130,6 +134,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         gender: data.gender,
         date_of_birth: data.date_of_birth,
         admission_number: data.admission_number,
+        class_level: data.class_level,
         parent_name: data.parent_name,
         parent_phone: data.parent_phone,
         center_id: centerId,
@@ -137,7 +142,7 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
         address: data.address || null,
         special_needs: data.special_needs || null,
         admission_date: data.admission_date || null,
-      };
+      } as any;
       
       if (isEditing && student) {
         await updateStudent.mutateAsync({
@@ -212,6 +217,27 @@ export function StudentDialog({ open, onOpenChange, student }: StudentDialogProp
                         <SelectContent>
                           <SelectItem value="male">Male</SelectItem>
                           <SelectItem value="female">Female</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <FormField
+                  control={form.control}
+                  name="class_level"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Class Level</FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select class" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          <SelectItem value="pp1">PP1 (Pre-Primary 1)</SelectItem>
+                          <SelectItem value="pp2">PP2 (Pre-Primary 2)</SelectItem>
                         </SelectContent>
                       </Select>
                       <FormMessage />
