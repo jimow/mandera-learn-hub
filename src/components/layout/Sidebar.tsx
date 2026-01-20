@@ -10,6 +10,7 @@ import {
   LogOut,
   Menu,
   X,
+  MapPin,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -49,6 +50,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/centers", 
       icon: School,
       visible: hasPermission("centers", "read"),
+    },
+    { 
+      name: "Administrative Areas", 
+      href: "/administrative-areas", 
+      icon: MapPin,
+      visible: isAdmin(),
     },
     { 
       name: "Users", 

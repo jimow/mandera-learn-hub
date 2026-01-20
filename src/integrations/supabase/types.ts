@@ -14,6 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
+      counties: {
+        Row: {
+          code: string
+          created_at: string
+          id: string
+          name: string
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          id?: string
+          name: string
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          id?: string
+          name?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       custom_roles: {
         Row: {
           created_at: string
@@ -313,6 +337,7 @@ export type Database = {
       sub_counties: {
         Row: {
           code: string
+          county_id: string | null
           created_at: string
           id: string
           name: string
@@ -320,6 +345,7 @@ export type Database = {
         }
         Insert: {
           code: string
+          county_id?: string | null
           created_at?: string
           id?: string
           name: string
@@ -327,12 +353,21 @@ export type Database = {
         }
         Update: {
           code?: string
+          county_id?: string | null
           created_at?: string
           id?: string
           name?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "sub_counties_county_id_fkey"
+            columns: ["county_id"]
+            isOneToOne: false
+            referencedRelation: "counties"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       teachers: {
         Row: {
