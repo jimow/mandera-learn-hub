@@ -11,6 +11,7 @@ import {
   Menu,
   X,
   MapPin,
+  Code,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -83,6 +84,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Roles & Permissions", 
       href: "/roles", 
       icon: Shield,
+      visible: isSuperAdmin(),
+    },
+    { 
+      name: "API Documentation", 
+      href: "/api-docs", 
+      icon: Code,
       visible: isSuperAdmin(),
     },
   ].filter(item => item.visible);

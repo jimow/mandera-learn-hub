@@ -15,6 +15,7 @@ import RolesManagement from "./pages/RolesManagement";
 import StudentApprovals from "./pages/StudentApprovals";
 import AdministrativeAreas from "./pages/AdministrativeAreas";
 import InitialSetup from "./pages/InitialSetup";
+import ApiDocumentation from "./pages/ApiDocumentation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -133,6 +134,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout onLogout={signOut}>
               <StudentApprovals />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/api-docs"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <ApiDocumentation />
             </DashboardLayout>
           </ProtectedRoute>
         }
