@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2 } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { StudentDialog } from "@/components/students/StudentDialog";
+import { StudentImportDialog } from "@/components/students/StudentImportDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { DataActions } from "@/components/shared/DataActions";
 import { TablePagination } from "@/components/shared/TablePagination";
@@ -31,9 +32,9 @@ type Student = Database["public"]["Tables"]["students"]["Row"];
 const getApprovalStatusBadge = (status: string | null) => {
   switch (status) {
     case "approved_ministry":
-      return <Badge className="bg-green-600 text-white">Approved</Badge>;
+      return <Badge variant="default">Approved</Badge>;
     case "approved_subcounty":
-      return <Badge className="bg-amber-500 text-white">Pending Ministry</Badge>;
+      return <Badge variant="secondary">Pending Ministry</Badge>;
     case "rejected":
       return <Badge variant="destructive">Rejected</Badge>;
     case "pending":
@@ -45,6 +46,7 @@ const getApprovalStatusBadge = (status: string | null) => {
 export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
@@ -118,10 +120,16 @@ export default function Students() {
         <div className="flex gap-2">
           <DataActions data={exportData} filename="students" />
           {canCreate && (
-            <Button onClick={() => { setEditingStudent(null); setDialogOpen(true); }} className="gap-2">
-              <Plus className="w-4 h-4" />
-              Add Student
-            </Button>
+            <>
+              <Button variant="outline" onClick={() => setImportDialogOpen(true)} className="gap-2">
+                <Upload className="w-4 h-4" />
+                Import
+              </Button>
+              <Button onClick={() => { setEditingStudent(null); setDialogOpen(true); }} className="gap-2">
+                <Plus className="w-4 h-4" />
+                Add Student
+              </Button>
+            </>
           )}
         </div>
       </div>
@@ -224,6 +232,7 @@ export default function Students() {
       </div>
 
       <StudentDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editingStudent} />
+      <StudentImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
