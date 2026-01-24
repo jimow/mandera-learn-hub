@@ -18,54 +18,51 @@ export function CentersMap() {
   const [tokenLoading, setTokenLoading] = useState(true);
   const { data: centers } = useCenters();
 
+  const fetchMapboxToken = async (): Promise<string> => {
+    const baseUrl = import.meta.env.VITE_SUPABASE_URL;
+    if (!baseUrl) throw new Error("Backend URL not configured");
+
+    const { data: sessionData } = await supabase.auth.getSession();
+    const accessToken = sessionData.session?.access_token;
+
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 10000);
+
+    try {
+      const res = await fetch(`${baseUrl}/functions/v1/get-mapbox-token`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {}),
+        },
+        signal: controller.signal,
+      });
+
+      const json = await res.json().catch(() => ({}));
+      if (!res.ok) {
+        const msg = typeof json?.error === "string" ? json.error : `HTTP ${res.status}`;
+        throw new Error(msg);
+      }
+
+      const token = typeof json?.token === "string" ? json.token : null;
+      if (!token) throw new Error("Token missing in response");
+      return token;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
+  };
+
   useEffect(() => {
     let isMounted = true;
-    let retryCount = 0;
-    const maxRetries = 3;
 
     const initializeMap = async () => {
       if (!mapContainer.current || map.current) return;
 
       try {
-        // Fetch Mapbox token from edge function with retry logic
-        let tokenData = null;
-        let lastError = null;
-        
-        while (retryCount < maxRetries && !tokenData) {
-          try {
-            const response = await supabase.functions.invoke("get-mapbox-token", {
-              method: "POST",
-            });
-            
-            if (response.error) {
-              lastError = response.error;
-              retryCount++;
-              if (retryCount < maxRetries) {
-                await new Promise(resolve => setTimeout(resolve, 1000));
-              }
-              continue;
-            }
-            
-            tokenData = response.data;
-          } catch (e) {
-            lastError = e;
-            retryCount++;
-            if (retryCount < maxRetries) {
-              await new Promise(resolve => setTimeout(resolve, 1000));
-            }
-          }
-        }
-        
+        const token = await fetchMapboxToken();
         if (!isMounted) return;
-        
-        if (!tokenData?.token) {
-          console.error("Failed to get token after retries:", lastError);
-          setMapError("Mapbox token not configured");
-          setTokenLoading(false);
-          return;
-        }
 
-        mapboxgl.accessToken = tokenData.token;
+        mapboxgl.accessToken = token;
         setTokenLoading(false);
 
         map.current = new mapboxgl.Map({
@@ -78,37 +75,34 @@ export function CentersMap() {
         map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
 
         map.current.on("load", () => {
-          if (isMounted) {
-            setMapLoaded(true);
-          }
+          if (isMounted) setMapLoaded(true);
         });
 
         map.current.on("error", (e) => {
           console.error("Map error:", e);
-          if (isMounted) {
-            setMapError("Failed to load map");
-          }
+          if (isMounted) setMapError("Failed to load map");
         });
       } catch (error) {
+        const msg = error instanceof Error ? error.message : "Failed to initialize map";
         console.error("Map initialization error:", error);
         if (isMounted) {
-          setMapError("Failed to initialize map");
+          setMapError(msg);
           setTokenLoading(false);
         }
       }
     };
 
-    // Small delay to ensure component is fully mounted
-    const timeoutId = setTimeout(initializeMap, 100);
+    const t = window.setTimeout(initializeMap, 50);
 
     return () => {
       isMounted = false;
-      clearTimeout(timeoutId);
+      window.clearTimeout(t);
       if (map.current) {
         map.current.remove();
         map.current = null;
       }
     };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Add markers when map is loaded and centers data is available
