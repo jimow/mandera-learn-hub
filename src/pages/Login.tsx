@@ -156,6 +156,7 @@ export default function Login() {
                           type="email"
                           placeholder="you@mandera.go.ke"
                           className="pl-10"
+                          autoComplete="email"
                           {...field}
                         />
                       </div>
@@ -178,6 +179,7 @@ export default function Login() {
                           type={showPassword ? "text" : "password"}
                           placeholder="••••••••"
                           className="pl-10 pr-10"
+                          autoComplete={isSignUp ? "new-password" : "current-password"}
                           {...field}
                         />
                         <button
