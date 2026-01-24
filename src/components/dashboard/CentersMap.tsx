@@ -56,6 +56,8 @@ export function CentersMap() {
     let isMounted = true;
 
     const initializeMap = async () => {
+      // NOTE: On some renders, the effect can fire before the ref is attached.
+      // If we return early here and never retry, the UI stays stuck on "Loading map...".
       if (!mapContainer.current || map.current) return;
 
       try {
@@ -92,11 +94,27 @@ export function CentersMap() {
       }
     };
 
-    const t = window.setTimeout(initializeMap, 50);
+    // Retry briefly until the ref is attached (prevents "Loading map..." from getting stuck)
+    let attempts = 0;
+    const maxAttempts = 40; // ~4s at 100ms
+    const intervalId = window.setInterval(() => {
+      if (!isMounted) return;
+      attempts += 1;
+      if (mapContainer.current && !map.current) {
+        window.clearInterval(intervalId);
+        void initializeMap();
+        return;
+      }
+      if (attempts >= maxAttempts) {
+        window.clearInterval(intervalId);
+        setMapError("Map container not ready");
+        setTokenLoading(false);
+      }
+    }, 100);
 
     return () => {
       isMounted = false;
-      window.clearTimeout(t);
+      window.clearInterval(intervalId);
       if (map.current) {
         map.current.remove();
         map.current = null;
