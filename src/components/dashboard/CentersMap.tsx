@@ -156,49 +156,6 @@ export function CentersMap() {
   const centersWithCoords = centers?.filter((c) => c.latitude && c.longitude).length || 0;
   const totalCenters = centers?.length || 0;
 
-  if (tokenLoading) {
-    return (
-      <Card className="animate-fade-in">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MapPin className="w-5 h-5 text-primary" />
-            ECDE Centers Map
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] rounded-lg bg-muted flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-50" />
-              <p>Loading map...</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (mapError) {
-    return (
-      <Card className="animate-fade-in">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MapPin className="w-5 h-5 text-primary" />
-            ECDE Centers Map
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="h-[400px] rounded-lg bg-muted flex items-center justify-center">
-            <div className="text-center text-muted-foreground">
-              <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-              <p>{mapError}</p>
-              <p className="text-sm mt-1">Please configure your Mapbox token</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
   return (
     <Card className="animate-fade-in">
       <CardHeader className="pb-3">
@@ -213,7 +170,28 @@ export function CentersMap() {
         </div>
       </CardHeader>
       <CardContent>
-        <div ref={mapContainer} className="h-[400px] rounded-lg overflow-hidden" />
+        <div className="relative h-[400px] rounded-lg overflow-hidden">
+          <div ref={mapContainer} className="absolute inset-0" />
+
+          {(tokenLoading || mapError) && (
+            <div className="absolute inset-0 bg-muted flex items-center justify-center">
+              <div className="text-center text-muted-foreground px-6">
+                {mapError ? (
+                  <>
+                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                    <p>{mapError}</p>
+                    <p className="text-sm mt-1">Please configure your Mapbox token</p>
+                  </>
+                ) : (
+                  <>
+                    <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-50" />
+                    <p>Loading map...</p>
+                  </>
+                )}
+              </div>
+            </div>
+          )}
+        </div>
       </CardContent>
     </Card>
   );
