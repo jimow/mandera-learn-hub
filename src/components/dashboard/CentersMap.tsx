@@ -20,34 +20,52 @@ export function CentersMap() {
 
   useEffect(() => {
     let isMounted = true;
+    let retryCount = 0;
+    const maxRetries = 3;
 
     const initializeMap = async () => {
       if (!mapContainer.current || map.current) return;
 
       try {
-        console.log("Fetching Mapbox token...");
-        // Fetch Mapbox token from edge function
-        const { data, error } = await supabase.functions.invoke("get-mapbox-token");
+        // Fetch Mapbox token from edge function with retry logic
+        let tokenData = null;
+        let lastError = null;
         
-        console.log("Token response:", { data, error });
+        while (retryCount < maxRetries && !tokenData) {
+          try {
+            const response = await supabase.functions.invoke("get-mapbox-token", {
+              method: "POST",
+            });
+            
+            if (response.error) {
+              lastError = response.error;
+              retryCount++;
+              if (retryCount < maxRetries) {
+                await new Promise(resolve => setTimeout(resolve, 1000));
+              }
+              continue;
+            }
+            
+            tokenData = response.data;
+          } catch (e) {
+            lastError = e;
+            retryCount++;
+            if (retryCount < maxRetries) {
+              await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+          }
+        }
         
         if (!isMounted) return;
         
-        if (error) {
-          console.error("Edge function error:", error);
-          setMapError("Failed to fetch map token");
-          setTokenLoading(false);
-          return;
-        }
-        
-        if (!data?.token) {
-          console.error("No token in response:", data);
+        if (!tokenData?.token) {
+          console.error("Failed to get token after retries:", lastError);
           setMapError("Mapbox token not configured");
           setTokenLoading(false);
           return;
         }
 
-        mapboxgl.accessToken = data.token;
+        mapboxgl.accessToken = tokenData.token;
         setTokenLoading(false);
 
         map.current = new mapboxgl.Map({
@@ -80,10 +98,12 @@ export function CentersMap() {
       }
     };
 
-    initializeMap();
+    // Small delay to ensure component is fully mounted
+    const timeoutId = setTimeout(initializeMap, 100);
 
     return () => {
       isMounted = false;
+      clearTimeout(timeoutId);
       if (map.current) {
         map.current.remove();
         map.current = null;
