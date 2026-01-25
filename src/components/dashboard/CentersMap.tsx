@@ -134,21 +134,89 @@ export function CentersMap() {
     // Add markers for centers with coordinates
     centers.forEach((center) => {
       if (center.latitude && center.longitude) {
-        const popup = new mapboxgl.Popup({ offset: 25 }).setHTML(`
-          <div class="p-2">
-            <h3 class="font-semibold text-sm">${center.name}</h3>
-            <p class="text-xs text-gray-600">${center.location}</p>
-            <p class="text-xs text-gray-500">${center.sub_county}</p>
-            <div class="mt-2 text-xs">
-              <span class="text-primary font-medium">${center.students_count || 0}</span> students
+        // Create custom school marker element
+        const el = document.createElement("div");
+        el.className = "school-marker";
+        el.innerHTML = `
+          <div style="
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #16a34a 0%, #15803d 100%);
+            border-radius: 50% 50% 50% 0;
+            transform: rotate(-45deg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
+            border: 2px solid white;
+            cursor: pointer;
+          ">
+            <svg style="transform: rotate(45deg); width: 18px; height: 18px; color: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              <polyline points="9 22 9 12 15 12 15 22"/>
+            </svg>
+          </div>
+        `;
+
+        // Create popup for hover
+        const popup = new mapboxgl.Popup({
+          offset: 25,
+          closeButton: false,
+          closeOnClick: false,
+          className: "school-popup",
+        }).setHTML(`
+          <div style="padding: 12px; min-width: 180px;">
+            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+              <div style="width: 32px; height: 32px; background: #16a34a; border-radius: 6px; display: flex; align-items: center; justify-content: center;">
+                <svg style="width: 18px; height: 18px; color: white;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+                  <polyline points="9 22 9 12 15 12 15 22"/>
+                </svg>
+              </div>
+              <h3 style="font-weight: 600; font-size: 14px; color: #1f2937; margin: 0;">${center.name}</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
+              <div style="display: flex; align-items: center; gap: 6px; color: #6b7280;">
+                <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
+                  <circle cx="12" cy="10" r="3"/>
+                </svg>
+                <span>${center.location || "N/A"}</span>
+              </div>
+              <div style="display: flex; align-items: center; gap: 6px; color: #6b7280;">
+                <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                  <line x1="16" y1="2" x2="16" y2="6"/>
+                  <line x1="8" y1="2" x2="8" y2="6"/>
+                  <line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+                <span>${center.sub_county || "N/A"}</span>
+              </div>
+              <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
+                <div style="text-align: center;">
+                  <div style="font-weight: 600; color: #16a34a; font-size: 16px;">${center.students_count || 0}</div>
+                  <div style="color: #9ca3af; font-size: 10px;">Students</div>
+                </div>
+                <div style="text-align: center;">
+                  <div style="font-weight: 600; color: #2563eb; font-size: 16px;">${center.teachers_count || 0}</div>
+                  <div style="color: #9ca3af; font-size: 10px;">Teachers</div>
+                </div>
+              </div>
             </div>
           </div>
         `);
 
-        new mapboxgl.Marker({ color: "#16a34a" })
+        const marker = new mapboxgl.Marker(el)
           .setLngLat([Number(center.longitude), Number(center.latitude)])
-          .setPopup(popup)
           .addTo(map.current!);
+
+        // Show popup on hover
+        el.addEventListener("mouseenter", () => {
+          popup.setLngLat([Number(center.longitude), Number(center.latitude)]).addTo(map.current!);
+        });
+        el.addEventListener("mouseleave", () => {
+          popup.remove();
+        });
       }
     });
   }, [centers, mapLoaded]);
