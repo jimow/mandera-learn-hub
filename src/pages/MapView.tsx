@@ -1,24 +1,29 @@
 import { useEffect, useRef, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import mapboxgl from "mapbox-gl";
 import "mapbox-gl/dist/mapbox-gl.css";
 import { useCenters } from "@/hooks/useCenters";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { MapPin, AlertCircle, Loader2 } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, AlertCircle, Loader2, Maximize2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 
-// Mandera County approximate center coordinates
 const MANDERA_CENTER: [number, number] = [40.0, 3.9];
 const INITIAL_ZOOM = 8;
 
-export function CentersMap() {
+export default function MapView() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const [mapLoaded, setMapLoaded] = useState(false);
   const [mapError, setMapError] = useState<string | null>(null);
   const [tokenLoading, setTokenLoading] = useState(true);
   const { data: centers } = useCenters();
+
+  // Get center coordinates from URL params if available
+  const centerLng = searchParams.get("lng");
+  const centerLat = searchParams.get("lat");
+  const zoomLevel = searchParams.get("zoom");
 
   const fetchMapboxToken = async (): Promise<string> => {
     const baseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -58,8 +63,6 @@ export function CentersMap() {
     let isMounted = true;
 
     const initializeMap = async () => {
-      // NOTE: On some renders, the effect can fire before the ref is attached.
-      // If we return early here and never retry, the UI stays stuck on "Loading map...".
       if (!mapContainer.current || map.current) return;
 
       try {
@@ -69,14 +72,21 @@ export function CentersMap() {
         mapboxgl.accessToken = token;
         setTokenLoading(false);
 
+        const initialCenter: [number, number] = centerLng && centerLat 
+          ? [parseFloat(centerLng), parseFloat(centerLat)]
+          : MANDERA_CENTER;
+        
+        const initialZoom = zoomLevel ? parseFloat(zoomLevel) : INITIAL_ZOOM;
+
         map.current = new mapboxgl.Map({
           container: mapContainer.current,
           style: "mapbox://styles/mapbox/streets-v12",
-          center: MANDERA_CENTER,
-          zoom: INITIAL_ZOOM,
+          center: initialCenter,
+          zoom: initialZoom,
         });
 
         map.current.addControl(new mapboxgl.NavigationControl(), "top-right");
+        map.current.addControl(new mapboxgl.FullscreenControl(), "top-right");
 
         map.current.on("load", () => {
           if (isMounted) setMapLoaded(true);
@@ -96,9 +106,8 @@ export function CentersMap() {
       }
     };
 
-    // Retry briefly until the ref is attached (prevents "Loading map..." from getting stuck)
     let attempts = 0;
-    const maxAttempts = 40; // ~4s at 100ms
+    const maxAttempts = 40;
     const intervalId = window.setInterval(() => {
       if (!isMounted) return;
       attempts += 1;
@@ -123,20 +132,17 @@ export function CentersMap() {
       }
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [centerLng, centerLat, zoomLevel]);
 
   // Add markers when map is loaded and centers data is available
   useEffect(() => {
     if (!map.current || !mapLoaded || !centers) return;
 
-    // Clear existing markers
     const markers = document.querySelectorAll(".mapboxgl-marker");
     markers.forEach((marker) => marker.remove());
 
-    // Add markers for centers with coordinates
     centers.forEach((center) => {
       if (center.latitude && center.longitude) {
-        // Create custom school marker element
         const el = document.createElement("div");
         el.className = "school-marker";
         el.innerHTML = `
@@ -160,7 +166,6 @@ export function CentersMap() {
           </div>
         `;
 
-        // Create popup for hover
         const popup = new mapboxgl.Popup({
           offset: 25,
           closeButton: false,
@@ -179,28 +184,15 @@ export function CentersMap() {
             </div>
             <div style="display: flex; flex-direction: column; gap: 4px; font-size: 12px;">
               <div style="display: flex; align-items: center; gap: 6px; color: #6b7280;">
-                <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/>
-                  <circle cx="12" cy="10" r="3"/>
-                </svg>
                 <span>${center.location || "N/A"}</span>
-              </div>
-              <div style="display: flex; align-items: center; gap: 6px; color: #6b7280;">
-                <svg style="width: 14px; height: 14px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
-                  <line x1="16" y1="2" x2="16" y2="6"/>
-                  <line x1="8" y1="2" x2="8" y2="6"/>
-                  <line x1="3" y1="10" x2="21" y2="10"/>
-                </svg>
-                <span>${center.sub_county || "N/A"}</span>
               </div>
               <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #e5e7eb; display: flex; justify-content: space-between;">
                 <div style="text-align: center;">
-                  <div style="font-weight: 600; color: #16a34a; font-size: 16px;">${center.students_count || 0}</div>
+                  <div style="font-weight: 600; color: #16a34a; font-size: 16px;">${(center as any).students_count || 0}</div>
                   <div style="color: #9ca3af; font-size: 10px;">Students</div>
                 </div>
                 <div style="text-align: center;">
-                  <div style="font-weight: 600; color: #2563eb; font-size: 16px;">${center.teachers_count || 0}</div>
+                  <div style="font-weight: 600; color: #2563eb; font-size: 16px;">${(center as any).teachers_count || 0}</div>
                   <div style="color: #9ca3af; font-size: 10px;">Teachers</div>
                 </div>
               </div>
@@ -208,18 +200,16 @@ export function CentersMap() {
           </div>
         `);
 
-        const marker = new mapboxgl.Marker(el)
+        new mapboxgl.Marker(el)
           .setLngLat([Number(center.longitude), Number(center.latitude)])
           .addTo(map.current!);
 
-        // Show popup on hover
         el.addEventListener("mouseenter", () => {
           popup.setLngLat([Number(center.longitude), Number(center.latitude)]).addTo(map.current!);
         });
         el.addEventListener("mouseleave", () => {
           popup.remove();
         });
-        // Navigate to center details on click
         el.addEventListener("click", (e) => {
           e.stopPropagation();
           navigate(`/centers/${center.id}`);
@@ -228,67 +218,53 @@ export function CentersMap() {
     });
   }, [centers, mapLoaded, navigate]);
 
-  // Handle click on map (not on marker) to go to full map view
-  const handleMapClick = () => {
-    if (map.current) {
-      const center = map.current.getCenter();
-      const zoom = map.current.getZoom();
-      navigate(`/map?lng=${center.lng}&lat=${center.lat}&zoom=${zoom}`);
-    } else {
-      navigate("/map");
-    }
-  };
-
   const centersWithCoords = centers?.filter((c) => c.latitude && c.longitude).length || 0;
   const totalCenters = centers?.length || 0;
 
   return (
-    <Card className="animate-fade-in">
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-lg">
-            <MapPin className="w-5 h-5 text-primary" />
-            ECDE Centers Map
-          </CardTitle>
-          <span className="text-sm text-muted-foreground">
-            {centersWithCoords}/{totalCenters} centers mapped
-          </span>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div 
-          className="relative h-[400px] rounded-lg overflow-hidden cursor-pointer group"
-          onClick={handleMapClick}
-          title="Click to view full map"
-        >
-          <div ref={mapContainer} className="absolute inset-0" />
-          {/* Overlay hint for clicking */}
-          {mapLoaded && !mapError && (
-            <div className="absolute bottom-3 left-3 bg-background/90 backdrop-blur px-3 py-1.5 rounded-lg text-sm text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none">
-              Click anywhere to expand map
+    <div className="min-h-screen bg-background">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container flex items-center justify-between h-16 px-4">
+          <div className="flex items-center gap-4">
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+              <ArrowLeft className="w-5 h-5" />
+            </Button>
+            <div>
+              <h1 className="font-display font-semibold text-lg">ECDE Centers Map</h1>
+              <p className="text-sm text-muted-foreground">
+                {centersWithCoords}/{totalCenters} centers mapped
+              </p>
             </div>
-          )}
+          </div>
+          <div className="flex items-center gap-2">
+            <Maximize2 className="w-4 h-4 text-muted-foreground" />
+            <span className="text-sm text-muted-foreground">Click on a pin to view center details</span>
+          </div>
+        </div>
+      </div>
 
-          {(tokenLoading || mapError) && (
-            <div className="absolute inset-0 bg-muted flex items-center justify-center">
-              <div className="text-center text-muted-foreground px-6">
-                {mapError ? (
-                  <>
-                    <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
-                    <p>{mapError}</p>
-                    <p className="text-sm mt-1">Please configure your Mapbox token</p>
-                  </>
-                ) : (
-                  <>
-                    <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-50" />
-                    <p>Loading map...</p>
-                  </>
-                )}
-              </div>
+      <div className="relative h-[calc(100vh-4rem)]">
+        <div ref={mapContainer} className="absolute inset-0" />
+
+        {(tokenLoading || mapError) && (
+          <div className="absolute inset-0 bg-muted flex items-center justify-center">
+            <div className="text-center text-muted-foreground px-6">
+              {mapError ? (
+                <>
+                  <AlertCircle className="w-12 h-12 mx-auto mb-2 opacity-50" />
+                  <p>{mapError}</p>
+                  <p className="text-sm mt-1">Please configure your Mapbox token</p>
+                </>
+              ) : (
+                <>
+                  <Loader2 className="w-12 h-12 mx-auto mb-2 animate-spin opacity-50" />
+                  <p>Loading map...</p>
+                </>
+              )}
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+          </div>
+        )}
+      </div>
+    </div>
   );
 }

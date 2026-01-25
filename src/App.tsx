@@ -16,6 +16,8 @@ import StudentApprovals from "./pages/StudentApprovals";
 import AdministrativeAreas from "./pages/AdministrativeAreas";
 import InitialSetup from "./pages/InitialSetup";
 import ApiDocumentation from "./pages/ApiDocumentation";
+import MapView from "./pages/MapView";
+import CenterDetails from "./pages/CenterDetails";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -145,6 +147,22 @@ function AppRoutes() {
             <DashboardLayout onLogout={signOut}>
               <ApiDocumentation />
             </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/map"
+        element={
+          <ProtectedRoute>
+            <MapView />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/centers/:id"
+        element={
+          <ProtectedRoute>
+            <CenterDetails />
           </ProtectedRoute>
         }
       />
