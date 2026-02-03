@@ -16,7 +16,7 @@ interface CenterWithCounts extends Center {
 
 export function useCenters() {
   const { hasRole } = useAuth();
-  const { data: centerAssignment } = useUserCenterAssignment();
+  const { data: centerAssignment, isLoading: isLoadingAssignment } = useUserCenterAssignment();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
   const userCenterId = centerAssignment?.center_id;
@@ -24,6 +24,11 @@ export function useCenters() {
   return useQuery({
     queryKey: ["centers", isCenterBased ? userCenterId : "all"],
     queryFn: async () => {
+      // For center-based roles without an assignment, return empty array
+      if (isCenterBased && !userCenterId) {
+        return [] as CenterWithCounts[];
+      }
+      
       let query = supabase
         .from("ecde_centers")
         .select("*")
@@ -62,6 +67,8 @@ export function useCenters() {
       
       return centersWithCounts as CenterWithCounts[];
     },
+    // Wait for center assignment to load before running query for center-based users
+    enabled: !isCenterBased || !isLoadingAssignment,
   });
 }
 
