@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserCenterAssignment } from "./useUserCenterAssignment";
 
 type Center = Database["public"]["Tables"]["ecde_centers"]["Row"];
 type CenterInsert = Database["public"]["Tables"]["ecde_centers"]["Insert"];
@@ -13,13 +15,26 @@ interface CenterWithCounts extends Center {
 }
 
 export function useCenters() {
+  const { hasRole } = useAuth();
+  const { data: centerAssignment } = useUserCenterAssignment();
+  
+  const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const userCenterId = centerAssignment?.center_id;
+
   return useQuery({
-    queryKey: ["centers"],
+    queryKey: ["centers", isCenterBased ? userCenterId : "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("ecde_centers")
         .select("*")
         .order("created_at", { ascending: false });
+      
+      // Filter to user's assigned center for center-based roles
+      if (isCenterBased && userCenterId) {
+        query = query.eq("id", userCenterId);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       

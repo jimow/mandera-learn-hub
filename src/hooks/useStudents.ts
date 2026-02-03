@@ -2,6 +2,8 @@ import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
+import { useAuth } from "@/contexts/AuthContext";
+import { useUserCenterAssignment } from "./useUserCenterAssignment";
 
 type Student = Database["public"]["Tables"]["students"]["Row"];
 type StudentInsert = Database["public"]["Tables"]["students"]["Insert"];
@@ -11,14 +13,30 @@ interface StudentWithCenter extends Student {
   ecde_centers: { name: string; sub_county: string; ward: string } | null;
 }
 
-export function useStudents() {
+export function useStudents(centerId?: string) {
+  const { hasRole } = useAuth();
+  const { data: centerAssignment } = useUserCenterAssignment();
+  
+  const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const userCenterId = centerAssignment?.center_id;
+  
+  // Use provided centerId, or user's assigned center for center-based roles
+  const effectiveCenterId = centerId || (isCenterBased ? userCenterId : undefined);
+
   return useQuery({
-    queryKey: ["students"],
+    queryKey: ["students", effectiveCenterId || "all"],
     queryFn: async () => {
-      const { data, error } = await supabase
+      let query = supabase
         .from("students")
         .select("*, ecde_centers(name, sub_county, ward)")
         .order("created_at", { ascending: false });
+      
+      // Filter by center if applicable
+      if (effectiveCenterId) {
+        query = query.eq("center_id", effectiveCenterId);
+      }
+      
+      const { data, error } = await query;
       
       if (error) throw error;
       return data as StudentWithCenter[];
@@ -45,12 +63,23 @@ export function useStudent(id: string) {
 
 export function useCreateStudent() {
   const queryClient = useQueryClient();
+  const { hasRole } = useAuth();
+  const { data: centerAssignment } = useUserCenterAssignment();
+  
+  const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const userCenterId = centerAssignment?.center_id;
   
   return useMutation({
     mutationFn: async (student: StudentInsert) => {
+      // Auto-assign center for center-based roles if not provided
+      const studentData = {
+        ...student,
+        center_id: student.center_id || (isCenterBased ? userCenterId : undefined),
+      };
+      
       const { data, error } = await supabase
         .from("students")
-        .insert(student)
+        .insert(studentData)
         .select()
         .single();
       
