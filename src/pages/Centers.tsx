@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { CenterDialog } from "@/components/centers/CenterDialog";
+import { CentersMap } from "@/components/dashboard/CentersMap";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { DataActions } from "@/components/shared/DataActions";
 import { useCenters, useDeleteCenter } from "@/hooks/useCenters";
