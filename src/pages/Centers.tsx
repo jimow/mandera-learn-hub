@@ -93,7 +93,7 @@ export default function Centers() {
         </Button>
       </div>
 
-      {isLoading ? (
+      <CentersMap />
         <div className="p-8 text-center text-muted-foreground">Loading...</div>
       ) : filteredCenters.length === 0 ? (
         <div className="p-8 text-center text-muted-foreground">No centers found</div>
