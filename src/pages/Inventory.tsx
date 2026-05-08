@@ -166,6 +166,7 @@ export default function Inventory() {
           </div>
         </Card>
       </div>
+      )}
 
       <Tabs defaultValue="items">
         <TabsList>
