@@ -4,7 +4,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateStockTransaction } from "@/hooks/useInventory";
 
 interface Props {
@@ -12,18 +11,17 @@ interface Props {
   onOpenChange: (o: boolean) => void;
   item: any;
   mode: "stock_in" | "stock_out";
-  suppliers: any[];
 }
 
-export function StockTransactionDialog({ open, onOpenChange, item, mode, suppliers }: Props) {
+export function StockTransactionDialog({ open, onOpenChange, item, mode }: Props) {
   const [form, setForm] = useState<any>({
-    quantity: 1, reason: "", reference_number: "", supplier_id: null,
+    quantity: 1, reason: "", reference_number: "",
     transaction_date: new Date().toISOString().slice(0, 10), notes: "", unit_cost: 0,
   });
   const create = useCreateStockTransaction();
 
   useEffect(() => {
-    if (open) setForm({ quantity: 1, reason: "", reference_number: "", supplier_id: null, transaction_date: new Date().toISOString().slice(0, 10), notes: "", unit_cost: item?.unit_cost ?? 0 });
+    if (open) setForm({ quantity: 1, reason: "", reference_number: "", transaction_date: new Date().toISOString().slice(0, 10), notes: "", unit_cost: item?.unit_cost ?? 0 });
   }, [open, item]);
 
   const submit = async () => {
@@ -36,7 +34,6 @@ export function StockTransactionDialog({ open, onOpenChange, item, mode, supplie
       unit_cost: Number(form.unit_cost),
       reason: form.reason,
       reference_number: form.reference_number,
-      supplier_id: form.supplier_id || null,
       transaction_date: form.transaction_date,
       notes: form.notes,
     });
@@ -67,31 +64,19 @@ export function StockTransactionDialog({ open, onOpenChange, item, mode, supplie
           </div>
           {mode === "stock_in" && (
             <>
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <Label>Unit Cost</Label>
-                  <Input type="number" value={form.unit_cost} onChange={e => setForm({ ...form, unit_cost: e.target.value })} />
-                </div>
-                <div>
-                  <Label>Supplier</Label>
-                  <Select value={form.supplier_id ?? "none"} onValueChange={v => setForm({ ...form, supplier_id: v === "none" ? null : v })}>
-                    <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="none">None</SelectItem>
-                      {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
+              <div>
+                <Label>Unit Cost</Label>
+                <Input type="number" value={form.unit_cost} onChange={e => setForm({ ...form, unit_cost: e.target.value })} />
               </div>
               <div>
-                <Label>Reference / Invoice #</Label>
+                <Label>Reference / Doc #</Label>
                 <Input value={form.reference_number} onChange={e => setForm({ ...form, reference_number: e.target.value })} />
               </div>
             </>
           )}
           <div>
             <Label>Reason</Label>
-            <Input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder={mode === "stock_in" ? "Delivery, donation..." : "Daily ration, classroom use..."} />
+            <Input value={form.reason} onChange={e => setForm({ ...form, reason: e.target.value })} placeholder={mode === "stock_in" ? "Adjustment, correction..." : "Daily ration, classroom use..."} />
           </div>
           <div>
             <Label>Notes</Label>
