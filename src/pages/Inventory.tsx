@@ -49,9 +49,15 @@ export default function Inventory() {
   const { data: assignment } = useUserCenterAssignment();
   const isCenterAdmin = hasRole("center_admin");
   const isTeacher = hasRole("teacher");
-  const canManage = isAdmin() || isCenterAdmin;
+  const isEducationOfficerRole = hasRole("education_officer");
+  const isGovernor = hasRole("governor");
+  // Requesters (center-level users) should not see the ministry items catalog directly.
+  const isRequesterOnly = (isCenterAdmin || isTeacher) && !isAdmin();
+  const canViewItems = !isRequesterOnly; // admins, education officers, governors
+  const canManage = isAdmin();
   const canRecordDelivery = isAdmin() || hasPermission("inventory", "record_delivery") || isCenterAdmin;
   const canRecordUtilization = isAdmin() || hasPermission("inventory", "record_utilization") || isCenterAdmin || isTeacher;
+  const canRequest = isAdmin() || isCenterAdmin;
 
   const { data: items = [], isLoading } = useInventoryItems();
   const { data: transactions = [] } = useStockTransactions();
@@ -61,8 +67,7 @@ export default function Inventory() {
   const deleteItem = useDeleteInventoryItem();
   const updateReqStatus = useUpdateRequisitionStatus();
   const analyzeReq = useAnalyzeRequisition();
-  const isEducationOfficer = hasRole("education_officer");
-  const canApproveL1 = isAdmin() || isEducationOfficer;
+  const canApproveL1 = isAdmin() || isEducationOfficerRole;
   const canApproveL2 = isAdmin();
 
   const filteredItems = useMemo(() => items.filter((it: any) => {
@@ -115,19 +120,20 @@ export default function Inventory() {
               <Activity className="w-4 h-4 mr-2" />Record Utilization
             </Button>
           )}
+          {canRequest && (
+            <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
+              <ClipboardList className="w-4 h-4 mr-2" />New Requisition
+            </Button>
+          )}
           {canManage && (
-            <>
-              <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
-                <ClipboardList className="w-4 h-4 mr-2" />New Requisition
-              </Button>
-              <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
-                <Plus className="w-4 h-4 mr-2" />Add Item
-              </Button>
-            </>
+            <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
+              <Plus className="w-4 h-4 mr-2" />Add Item
+            </Button>
           )}
         </div>
       </div>
 
+      {canViewItems && (
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between">
@@ -160,16 +166,18 @@ export default function Inventory() {
           </div>
         </Card>
       </div>
+      )}
 
-      <Tabs defaultValue="items">
+      <Tabs defaultValue={canViewItems ? "items" : "requisitions"}>
         <TabsList>
-          <TabsTrigger value="items">Items</TabsTrigger>
+          {canViewItems && <TabsTrigger value="items">Items</TabsTrigger>}
           <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
           <TabsTrigger value="utilization">Utilization</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="requisitions">Requisitions</TabsTrigger>
         </TabsList>
 
+        {canViewItems && (
         <TabsContent value="items" className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <div className="relative flex-1 min-w-[200px]">
@@ -249,6 +257,7 @@ export default function Inventory() {
             </Table>
           </Card>
         </TabsContent>
+        )}
 
         <TabsContent value="deliveries">
           <Card>
