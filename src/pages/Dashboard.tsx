@@ -409,6 +409,24 @@ export default function Dashboard() {
             </div>
             <span className="text-sm font-medium">Approvals</span>
           </Link>
+          <Link
+            to="/reports"
+            className="p-4 rounded-xl bg-primary/5 hover:bg-primary/10 transition-colors text-center group"
+          >
+            <div className="w-12 h-12 mx-auto mb-2 rounded-lg bg-primary/10 flex items-center justify-center group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+              <FileText className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-medium">Reports</span>
+          </Link>
+          <Link
+            to="/inventory"
+            className="p-4 rounded-xl bg-secondary/5 hover:bg-secondary/10 transition-colors text-center group"
+          >
+            <div className="w-12 h-12 mx-auto mb-2 rounded-lg bg-secondary/10 flex items-center justify-center group-hover:bg-secondary group-hover:text-secondary-foreground transition-colors">
+              <Package className="w-6 h-6" />
+            </div>
+            <span className="text-sm font-medium">Inventory</span>
+          </Link>
         </div>
       </div>
     </div>
