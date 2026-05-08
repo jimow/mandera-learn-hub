@@ -59,7 +59,15 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{item?.id ? "Edit" : "Add"} Inventory Item</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {item?.id ? "Edit" : "Add"} Inventory Item
+            {isAdmin() && !item?.id && <Badge variant="secondary">Ministry catalog</Badge>}
+          </DialogTitle>
+          {isAdmin() && !item?.id && (
+            <p className="text-xs text-muted-foreground">Items added here are part of the central ministry catalog and visible to all centers.</p>
+          )}
+        </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Name *</Label>
