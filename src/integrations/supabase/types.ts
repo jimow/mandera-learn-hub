@@ -192,7 +192,6 @@ export type Database = {
           name: string
           reorder_level: number
           sku: string | null
-          supplier_id: string | null
           unit: string
           unit_cost: number | null
           updated_at: string
@@ -210,7 +209,6 @@ export type Database = {
           name: string
           reorder_level?: number
           sku?: string | null
-          supplier_id?: string | null
           unit?: string
           unit_cost?: number | null
           updated_at?: string
@@ -228,20 +226,62 @@ export type Database = {
           name?: string
           reorder_level?: number
           sku?: string | null
-          supplier_id?: string | null
           unit?: string
           unit_cost?: number | null
           updated_at?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "inventory_items_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
+      }
+      ministry_deliveries: {
+        Row: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          center_id: string
+          created_at: string
+          delivered_by: string | null
+          delivery_date: string
+          id: string
+          item_id: string | null
+          item_name: string
+          notes: string | null
+          quantity: number
+          recorded_by: string | null
+          reference_number: string | null
+          unit: string
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          center_id: string
+          created_at?: string
+          delivered_by?: string | null
+          delivery_date?: string
+          id?: string
+          item_id?: string | null
+          item_name: string
+          notes?: string | null
+          quantity: number
+          recorded_by?: string | null
+          reference_number?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["inventory_category"]
+          center_id?: string
+          created_at?: string
+          delivered_by?: string | null
+          delivery_date?: string
+          id?: string
+          item_id?: string | null
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          recorded_by?: string | null
+          reference_number?: string | null
+          unit?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       notifications: {
         Row: {
@@ -281,11 +321,28 @@ export type Database = {
       }
       permissions: {
         Row: {
+          can_activate_deactivate: boolean | null
+          can_approve_ministry: boolean | null
+          can_approve_requisitions: boolean | null
+          can_approve_subcounty: boolean | null
+          can_assign_staff: boolean | null
+          can_bulk_update: boolean | null
+          can_change_class_level: boolean | null
           can_create: boolean | null
           can_delete: boolean | null
+          can_export: boolean | null
+          can_import: boolean | null
+          can_manage_inventory: boolean | null
+          can_manage_location: boolean | null
           can_read: boolean | null
+          can_record_delivery: boolean | null
+          can_record_utilization: boolean | null
+          can_reject: boolean | null
           can_transfer: boolean | null
+          can_transfer_center: boolean | null
           can_update: boolean | null
+          can_view_reports: boolean | null
+          can_view_sensitive: boolean | null
           created_at: string
           id: string
           resource: string
@@ -293,11 +350,28 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          can_activate_deactivate?: boolean | null
+          can_approve_ministry?: boolean | null
+          can_approve_requisitions?: boolean | null
+          can_approve_subcounty?: boolean | null
+          can_assign_staff?: boolean | null
+          can_bulk_update?: boolean | null
+          can_change_class_level?: boolean | null
           can_create?: boolean | null
           can_delete?: boolean | null
+          can_export?: boolean | null
+          can_import?: boolean | null
+          can_manage_inventory?: boolean | null
+          can_manage_location?: boolean | null
           can_read?: boolean | null
+          can_record_delivery?: boolean | null
+          can_record_utilization?: boolean | null
+          can_reject?: boolean | null
           can_transfer?: boolean | null
+          can_transfer_center?: boolean | null
           can_update?: boolean | null
+          can_view_reports?: boolean | null
+          can_view_sensitive?: boolean | null
           created_at?: string
           id?: string
           resource: string
@@ -305,11 +379,28 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          can_activate_deactivate?: boolean | null
+          can_approve_ministry?: boolean | null
+          can_approve_requisitions?: boolean | null
+          can_approve_subcounty?: boolean | null
+          can_assign_staff?: boolean | null
+          can_bulk_update?: boolean | null
+          can_change_class_level?: boolean | null
           can_create?: boolean | null
           can_delete?: boolean | null
+          can_export?: boolean | null
+          can_import?: boolean | null
+          can_manage_inventory?: boolean | null
+          can_manage_location?: boolean | null
           can_read?: boolean | null
+          can_record_delivery?: boolean | null
+          can_record_utilization?: boolean | null
+          can_reject?: boolean | null
           can_transfer?: boolean | null
+          can_transfer_center?: boolean | null
           can_update?: boolean | null
+          can_view_reports?: boolean | null
+          can_view_sensitive?: boolean | null
           created_at?: string
           id?: string
           resource?: string
@@ -455,7 +546,6 @@ export type Database = {
           quantity: number
           reason: string | null
           reference_number: string | null
-          supplier_id: string | null
           transaction_date: string
           transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
           unit_cost: number | null
@@ -470,7 +560,6 @@ export type Database = {
           quantity: number
           reason?: string | null
           reference_number?: string | null
-          supplier_id?: string | null
           transaction_date?: string
           transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
           unit_cost?: number | null
@@ -485,7 +574,6 @@ export type Database = {
           quantity?: number
           reason?: string | null
           reference_number?: string | null
-          supplier_id?: string | null
           transaction_date?: string
           transaction_type?: Database["public"]["Enums"]["stock_transaction_type"]
           unit_cost?: number | null
@@ -496,13 +584,6 @@ export type Database = {
             columns: ["item_id"]
             isOneToOne: false
             referencedRelation: "inventory_items"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stock_transactions_supplier_id_fkey"
-            columns: ["supplier_id"]
-            isOneToOne: false
-            referencedRelation: "suppliers"
             referencedColumns: ["id"]
           },
         ]
@@ -631,42 +712,6 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
-      }
-      suppliers: {
-        Row: {
-          address: string | null
-          contact_person: string | null
-          created_at: string
-          email: string | null
-          id: string
-          is_active: boolean | null
-          name: string
-          phone: string | null
-          updated_at: string
-        }
-        Insert: {
-          address?: string | null
-          contact_person?: string | null
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Update: {
-          address?: string | null
-          contact_person?: string | null
-          created_at?: string
-          email?: string | null
-          id?: string
-          is_active?: boolean | null
-          name?: string
-          phone?: string | null
-          updated_at?: string
-        }
-        Relationships: []
       }
       teacher_transfers: {
         Row: {
@@ -885,6 +930,51 @@ export type Database = {
           },
         ]
       }
+      utilization_logs: {
+        Row: {
+          beneficiaries: number | null
+          center_id: string
+          class_level: Database["public"]["Enums"]["class_level"] | null
+          created_at: string
+          id: string
+          item_id: string
+          notes: string | null
+          purpose: string | null
+          quantity: number
+          recorded_by: string | null
+          updated_at: string
+          utilization_date: string
+        }
+        Insert: {
+          beneficiaries?: number | null
+          center_id: string
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          purpose?: string | null
+          quantity: number
+          recorded_by?: string | null
+          updated_at?: string
+          utilization_date?: string
+        }
+        Update: {
+          beneficiaries?: number | null
+          center_id?: string
+          class_level?: Database["public"]["Enums"]["class_level"] | null
+          created_at?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          purpose?: string | null
+          quantity?: number
+          recorded_by?: string | null
+          updated_at?: string
+          utilization_date?: string
+        }
+        Relationships: []
+      }
       wards: {
         Row: {
           code: string
@@ -937,11 +1027,28 @@ export type Database = {
       get_user_permissions: {
         Args: { _user_id: string }
         Returns: {
+          can_activate_deactivate: boolean
+          can_approve_ministry: boolean
+          can_approve_requisitions: boolean
+          can_approve_subcounty: boolean
+          can_assign_staff: boolean
+          can_bulk_update: boolean
+          can_change_class_level: boolean
           can_create: boolean
           can_delete: boolean
+          can_export: boolean
+          can_import: boolean
+          can_manage_inventory: boolean
+          can_manage_location: boolean
           can_read: boolean
+          can_record_delivery: boolean
+          can_record_utilization: boolean
+          can_reject: boolean
           can_transfer: boolean
+          can_transfer_center: boolean
           can_update: boolean
+          can_view_reports: boolean
+          can_view_sensitive: boolean
           resource: string
         }[]
       }

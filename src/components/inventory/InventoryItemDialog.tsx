@@ -21,30 +21,29 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   item?: any;
-  suppliers: any[];
 }
 
-export function InventoryItemDialog({ open, onOpenChange, item, suppliers }: Props) {
+export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
   const [form, setForm] = useState<any>({
     name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0,
-    unit_cost: 0, description: "", sku: "", supplier_id: null, expiry_date: null,
+    unit_cost: 0, description: "", sku: "", expiry_date: null,
   });
 
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
 
   useEffect(() => {
-    if (item) setForm({ ...item, supplier_id: item.supplier_id ?? null, expiry_date: item.expiry_date ?? null });
-    else setForm({ name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0, unit_cost: 0, description: "", sku: "", supplier_id: null, expiry_date: null });
+    if (item) setForm({ ...item, expiry_date: item.expiry_date ?? null });
+    else setForm({ name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0, unit_cost: 0, description: "", sku: "", expiry_date: null });
   }, [item, open]);
 
   const submit = async () => {
+    const { supplier_id, ...rest } = form;
     const payload = {
-      ...form,
+      ...rest,
       current_quantity: Number(form.current_quantity),
       reorder_level: Number(form.reorder_level),
       unit_cost: Number(form.unit_cost),
-      supplier_id: form.supplier_id || null,
       expiry_date: form.expiry_date || null,
     };
     if (item?.id) await update.mutateAsync({ id: item.id, ...payload });
@@ -94,21 +93,9 @@ export function InventoryItemDialog({ open, onOpenChange, item, suppliers }: Pro
               <Input value={form.sku ?? ""} onChange={e => setForm({ ...form, sku: e.target.value })} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Supplier</Label>
-              <Select value={form.supplier_id ?? "none"} onValueChange={v => setForm({ ...form, supplier_id: v === "none" ? null : v })}>
-                <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Expiry Date</Label>
-              <Input type="date" value={form.expiry_date ?? ""} onChange={e => setForm({ ...form, expiry_date: e.target.value })} />
-            </div>
+          <div>
+            <Label>Expiry Date</Label>
+            <Input type="date" value={form.expiry_date ?? ""} onChange={e => setForm({ ...form, expiry_date: e.target.value })} />
           </div>
           <div>
             <Label>Description</Label>

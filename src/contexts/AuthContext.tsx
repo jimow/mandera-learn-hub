@@ -5,6 +5,15 @@ import type { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
+type PermissionAction =
+  | "create" | "read" | "update" | "delete" | "transfer"
+  | "approve_subcounty" | "approve_ministry" | "reject"
+  | "import" | "export" | "bulk_update" | "view_sensitive"
+  | "transfer_center" | "change_class_level"
+  | "activate_deactivate" | "assign_staff" | "manage_location"
+  | "manage_inventory" | "record_delivery" | "record_utilization"
+  | "view_reports" | "approve_requisitions";
+
 interface Permission {
   resource: string;
   can_create: boolean;
@@ -12,6 +21,23 @@ interface Permission {
   can_update: boolean;
   can_delete: boolean;
   can_transfer: boolean;
+  can_approve_subcounty?: boolean;
+  can_approve_ministry?: boolean;
+  can_reject?: boolean;
+  can_import?: boolean;
+  can_export?: boolean;
+  can_bulk_update?: boolean;
+  can_view_sensitive?: boolean;
+  can_transfer_center?: boolean;
+  can_change_class_level?: boolean;
+  can_activate_deactivate?: boolean;
+  can_assign_staff?: boolean;
+  can_manage_location?: boolean;
+  can_manage_inventory?: boolean;
+  can_record_delivery?: boolean;
+  can_record_utilization?: boolean;
+  can_view_reports?: boolean;
+  can_approve_requisitions?: boolean;
 }
 
 interface UserProfile {
@@ -34,7 +60,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
-  hasPermission: (resource: string, action: "create" | "read" | "update" | "delete" | "transfer") => boolean;
+  hasPermission: (resource: string, action: PermissionAction) => boolean;
   isSuperAdmin: () => boolean;
   isAdmin: () => boolean;
   refreshRoles: () => Promise<void>;
@@ -141,30 +167,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return checkRoles.some((role) => roles.includes(role));
   };
 
-  const hasPermission = (
-    resource: string,
-    action: "create" | "read" | "update" | "delete" | "transfer"
-  ): boolean => {
-    // Super admins always have full access
+  const hasPermission = (resource: string, action: PermissionAction): boolean => {
     if (roles.includes("super_admin")) return true;
-    
     const permission = permissions.find((p) => p.resource === resource);
     if (!permission) return false;
-    
-    switch (action) {
-      case "create":
-        return permission.can_create;
-      case "read":
-        return permission.can_read;
-      case "update":
-        return permission.can_update;
-      case "delete":
-        return permission.can_delete;
-      case "transfer":
-        return permission.can_transfer;
-      default:
-        return false;
-    }
+    const key = `can_${action}` as keyof Permission;
+    return Boolean(permission[key]);
   };
 
   const isSuperAdmin = (): boolean => {

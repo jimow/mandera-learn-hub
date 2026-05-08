@@ -70,14 +70,35 @@ export function useRequisitions() {
   });
 }
 
-export function useSuppliers() {
+export function useMinistryDeliveries() {
+  const scope = useScope();
   return useQuery({
-    queryKey: ["suppliers"],
+    queryKey: ["ministry_deliveries", scope.centerId],
     queryFn: async () => {
-      const { data, error } = await supabase.from("suppliers").select("*").eq("is_active", true).order("name");
+      if (scope.isCenterBased && !scope.centerId) return [];
+      let q = supabase.from("ministry_deliveries").select("*, ecde_centers(name), inventory_items(name, unit)").order("delivery_date", { ascending: false });
+      if (scope.isCenterBased && scope.centerId) q = q.eq("center_id", scope.centerId);
+      const { data, error } = await q;
       if (error) throw error;
       return data || [];
     },
+    enabled: !scope.isCenterBased || !scope.isLoading,
+  });
+}
+
+export function useUtilizationLogs() {
+  const scope = useScope();
+  return useQuery({
+    queryKey: ["utilization_logs", scope.centerId],
+    queryFn: async () => {
+      if (scope.isCenterBased && !scope.centerId) return [];
+      let q = supabase.from("utilization_logs").select("*, ecde_centers(name), inventory_items(name, unit, category)").order("utilization_date", { ascending: false });
+      if (scope.isCenterBased && scope.centerId) q = q.eq("center_id", scope.centerId);
+      const { data, error } = await q;
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !scope.isCenterBased || !scope.isLoading,
   });
 }
 
@@ -95,7 +116,6 @@ export function useCreateInventoryItem() {
       unit_cost?: number;
       description?: string;
       sku?: string;
-      supplier_id?: string | null;
       expiry_date?: string | null;
       center_id?: string;
     }) => {
@@ -158,7 +178,6 @@ export function useCreateStockTransaction() {
       unit_cost?: number;
       reason?: string;
       reference_number?: string;
-      supplier_id?: string | null;
       transaction_date?: string;
       notes?: string;
     }) => {
@@ -177,16 +196,70 @@ export function useCreateStockTransaction() {
   });
 }
 
-export function useCreateSupplier() {
+export function useCreateMinistryDelivery() {
   const qc = useQueryClient();
+  const scope = useScope();
+  const { user } = useAuth();
   return useMutation({
-    mutationFn: async (s: { name: string; contact_person?: string; phone?: string; email?: string; address?: string }) => {
-      const { error } = await supabase.from("suppliers").insert(s);
+    mutationFn: async (d: {
+      item_id?: string | null;
+      item_name: string;
+      category: InventoryCategory;
+      quantity: number;
+      unit?: string;
+      delivery_date?: string;
+      delivered_by?: string;
+      reference_number?: string;
+      notes?: string;
+      center_id?: string;
+    }) => {
+      const center_id = d.center_id ?? scope.centerId;
+      if (!center_id) throw new Error("No center assigned");
+      const { error } = await supabase.from("ministry_deliveries").insert({
+        ...d,
+        center_id,
+        item_id: d.item_id ?? null,
+        recorded_by: user?.id,
+      });
       if (error) throw error;
     },
     onSuccess: () => {
-      qc.invalidateQueries({ queryKey: ["suppliers"] });
-      toast.success("Supplier added");
+      qc.invalidateQueries({ queryKey: ["ministry_deliveries"] });
+      qc.invalidateQueries({ queryKey: ["inventory_items"] });
+      toast.success("Delivery recorded");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useCreateUtilizationLog() {
+  const qc = useQueryClient();
+  const scope = useScope();
+  const { user } = useAuth();
+  return useMutation({
+    mutationFn: async (u: {
+      item_id: string;
+      quantity: number;
+      utilization_date?: string;
+      purpose?: string;
+      beneficiaries?: number;
+      class_level?: "pp1" | "pp2" | null;
+      notes?: string;
+      center_id?: string;
+    }) => {
+      const center_id = u.center_id ?? scope.centerId;
+      if (!center_id) throw new Error("No center assigned");
+      const { error } = await supabase.from("utilization_logs").insert({
+        ...u,
+        center_id,
+        recorded_by: user?.id,
+      });
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["utilization_logs"] });
+      qc.invalidateQueries({ queryKey: ["inventory_items"] });
+      toast.success("Utilization recorded");
     },
     onError: (e: Error) => toast.error(e.message),
   });
