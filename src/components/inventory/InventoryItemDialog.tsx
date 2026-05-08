@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateInventoryItem, useUpdateInventoryItem, type InventoryCategory } from "@/hooks/useInventory";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 const CATS: { value: InventoryCategory; label: string }[] = [
   { value: "food", label: "Food Rations" },
