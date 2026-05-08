@@ -21,30 +21,29 @@ interface Props {
   open: boolean;
   onOpenChange: (o: boolean) => void;
   item?: any;
-  suppliers: any[];
 }
 
-export function InventoryItemDialog({ open, onOpenChange, item, suppliers }: Props) {
+export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
   const [form, setForm] = useState<any>({
     name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0,
-    unit_cost: 0, description: "", sku: "", supplier_id: null, expiry_date: null,
+    unit_cost: 0, description: "", sku: "", expiry_date: null,
   });
 
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
 
   useEffect(() => {
-    if (item) setForm({ ...item, supplier_id: item.supplier_id ?? null, expiry_date: item.expiry_date ?? null });
-    else setForm({ name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0, unit_cost: 0, description: "", sku: "", supplier_id: null, expiry_date: null });
+    if (item) setForm({ ...item, expiry_date: item.expiry_date ?? null });
+    else setForm({ name: "", category: "food", unit: "pcs", current_quantity: 0, reorder_level: 0, unit_cost: 0, description: "", sku: "", expiry_date: null });
   }, [item, open]);
 
   const submit = async () => {
+    const { supplier_id, ...rest } = form;
     const payload = {
-      ...form,
+      ...rest,
       current_quantity: Number(form.current_quantity),
       reorder_level: Number(form.reorder_level),
       unit_cost: Number(form.unit_cost),
-      supplier_id: form.supplier_id || null,
       expiry_date: form.expiry_date || null,
     };
     if (item?.id) await update.mutateAsync({ id: item.id, ...payload });
