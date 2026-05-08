@@ -167,6 +167,16 @@ function AppRoutes() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/inventory"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <Inventory />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
       <Route path="*" element={<NotFound />} />
     </Routes>
   );
