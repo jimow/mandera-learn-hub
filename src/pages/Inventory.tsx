@@ -49,9 +49,15 @@ export default function Inventory() {
   const { data: assignment } = useUserCenterAssignment();
   const isCenterAdmin = hasRole("center_admin");
   const isTeacher = hasRole("teacher");
-  const canManage = isAdmin() || isCenterAdmin;
+  const isEducationOfficerRole = hasRole("education_officer");
+  const isGovernor = hasRole("governor");
+  // Requesters (center-level users) should not see the ministry items catalog directly.
+  const isRequesterOnly = (isCenterAdmin || isTeacher) && !isAdmin();
+  const canViewItems = !isRequesterOnly; // admins, education officers, governors
+  const canManage = isAdmin();
   const canRecordDelivery = isAdmin() || hasPermission("inventory", "record_delivery") || isCenterAdmin;
   const canRecordUtilization = isAdmin() || hasPermission("inventory", "record_utilization") || isCenterAdmin || isTeacher;
+  const canRequest = isAdmin() || isCenterAdmin;
 
   const { data: items = [], isLoading } = useInventoryItems();
   const { data: transactions = [] } = useStockTransactions();
