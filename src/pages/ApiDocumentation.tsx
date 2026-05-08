@@ -650,13 +650,21 @@ export default function ApiDocumentation() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {key.is_active && (
+                            {key.is_active ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => revokeApiKey.mutate(key.id)}
                               >
                                 Revoke
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => activateApiKey.mutate(key.id)}
+                              >
+                                Activate
                               </Button>
                             )}
                             <Button
