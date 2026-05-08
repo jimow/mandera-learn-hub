@@ -177,6 +177,7 @@ export default function Inventory() {
           <TabsTrigger value="requisitions">Requisitions</TabsTrigger>
         </TabsList>
 
+        {canViewItems && (
         <TabsContent value="items" className="space-y-4">
           <div className="flex flex-wrap gap-2">
             <div className="relative flex-1 min-w-[200px]">
