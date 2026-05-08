@@ -58,7 +58,12 @@ export function RequisitionDialog({ open, onOpenChange, items }: Props) {
           <div>
             <Label>Items</Label>
             <div className="space-y-2">
-              {lines.map((l, i) => (
+              {lines.map((l, i) => {
+                const selected = items.find(x => x.id === l.item_id);
+                const available = selected ? Number(selected.current_quantity) : null;
+                const requested = Number(l.quantity) || 0;
+                const insufficient = available !== null && requested > available;
+                return (
                 <div key={i} className="grid grid-cols-12 gap-2 items-end p-2 border rounded">
                   <div className="col-span-4">
                     <Label className="text-xs">Item</Label>
@@ -72,9 +77,18 @@ export function RequisitionDialog({ open, onOpenChange, items }: Props) {
                       <SelectTrigger><SelectValue placeholder="Select or custom" /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="custom">— Custom item —</SelectItem>
-                        {items.map(it => <SelectItem key={it.id} value={it.id}>{it.name}</SelectItem>)}
+                        {items.map(it => (
+                          <SelectItem key={it.id} value={it.id}>
+                            {it.name} {it.center_id == null ? "🏛️" : ""} ({Number(it.current_quantity)} {it.unit})
+                          </SelectItem>
+                        ))}
                       </SelectContent>
                     </Select>
+                    {selected && (
+                      <p className={`text-[11px] mt-1 ${insufficient ? "text-destructive" : "text-muted-foreground"}`}>
+                        Available: {available} {selected.unit} {insufficient && "• exceeds available stock"}
+                      </p>
+                    )}
                   </div>
                   <div className="col-span-3">
                     <Label className="text-xs">Name</Label>
@@ -95,7 +109,8 @@ export function RequisitionDialog({ open, onOpenChange, items }: Props) {
                     <Button variant="ghost" size="sm" onClick={() => removeLine(i)} disabled={lines.length === 1}><Trash2 className="w-4 h-4" /></Button>
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
             <Button variant="outline" size="sm" onClick={addLine} className="mt-2"><Plus className="w-4 h-4 mr-1" />Add line</Button>
           </div>

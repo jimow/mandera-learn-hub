@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   useInventoryItems, useStockTransactions, useRequisitions,
   useMinistryDeliveries, useUtilizationLogs,
-  useDeleteInventoryItem, useUpdateRequisitionStatus,
+  useDeleteInventoryItem, useUpdateRequisitionStatus, useAnalyzeRequisition,
   type InventoryCategory,
 } from "@/hooks/useInventory";
 import { useAuth } from "@/contexts/AuthContext";
@@ -60,6 +60,10 @@ export default function Inventory() {
   const { data: utilizations = [] } = useUtilizationLogs();
   const deleteItem = useDeleteInventoryItem();
   const updateReqStatus = useUpdateRequisitionStatus();
+  const analyzeReq = useAnalyzeRequisition();
+  const isEducationOfficer = hasRole("education_officer");
+  const canApproveL1 = isAdmin() || isEducationOfficer;
+  const canApproveL2 = isAdmin();
 
   const filteredItems = useMemo(() => items.filter((it: any) => {
     const matchSearch = it.name.toLowerCase().includes(search.toLowerCase()) || (it.sku ?? "").toLowerCase().includes(search.toLowerCase());
@@ -349,35 +353,66 @@ export default function Inventory() {
                   <TableHead>Center</TableHead>
                   <TableHead>Items</TableHead>
                   <TableHead>Reason</TableHead>
+                  <TableHead>AI Check</TableHead>
                   <TableHead>Status</TableHead>
-                  {isAdmin() && <TableHead className="text-right">Actions</TableHead>}
+                  {(canApproveL1 || canApproveL2) && <TableHead className="text-right">Actions</TableHead>}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {requisitions.length === 0 && (<TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No requisitions.</TableCell></TableRow>)}
-                {requisitions.map((r: any) => (
-                  <TableRow key={r.id}>
-                    <TableCell>{format(new Date(r.created_at), "PP")}</TableCell>
-                    <TableCell>{r.ecde_centers?.name ?? "—"}</TableCell>
-                    <TableCell className="text-sm">{r.requisition_items?.length ?? 0} items</TableCell>
-                    <TableCell className="text-sm">{r.reason ?? "—"}</TableCell>
-                    <TableCell>
-                      <Badge variant={r.status === "approved" || r.status === "fulfilled" ? "default" : r.status === "rejected" || r.status === "cancelled" ? "destructive" : "secondary"}>
-                        {r.status}
-                      </Badge>
-                    </TableCell>
-                    {isAdmin() && (
-                      <TableCell className="text-right">
-                        {r.status === "pending" && (
-                          <div className="flex gap-1 justify-end">
-                            <Button size="sm" variant="outline" onClick={() => updateReqStatus.mutate({ id: r.id, status: "approved" })}>Approve</Button>
-                            <Button size="sm" variant="outline" onClick={() => updateReqStatus.mutate({ id: r.id, status: "rejected" })}>Reject</Button>
-                          </div>
+                {requisitions.length === 0 && (<TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No requisitions.</TableCell></TableRow>)}
+                {requisitions.map((r: any) => {
+                  const sev = r.ai_anomaly_severity as string | null;
+                  const sevVariant: any = sev === "critical" || sev === "high" ? "destructive" : sev === "medium" ? "default" : "secondary";
+                  const status = r.status as string;
+                  return (
+                    <TableRow key={r.id}>
+                      <TableCell>{format(new Date(r.created_at), "PP")}</TableCell>
+                      <TableCell>{r.ecde_centers?.name ?? "—"}</TableCell>
+                      <TableCell className="text-sm">{r.requisition_items?.length ?? 0} items</TableCell>
+                      <TableCell className="text-sm">{r.reason ?? "—"}</TableCell>
+                      <TableCell>
+                        {sev ? (
+                          <Badge variant={sevVariant} title={r.ai_anomaly_reason ?? ""}>
+                            {sev} ({r.ai_anomaly_score ?? 0})
+                          </Badge>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">pending…</span>
                         )}
                       </TableCell>
-                    )}
-                  </TableRow>
-                ))}
+                      <TableCell>
+                        <Badge variant={
+                          status === "approved" || status === "approved_l2" || status === "fulfilled" ? "default"
+                          : status === "approved_l1" ? "secondary"
+                          : status === "rejected" || status === "cancelled" ? "destructive"
+                          : "secondary"
+                        }>
+                          {status === "approved_l1" ? "L1 approved" : status === "approved_l2" ? "L2 approved" : status}
+                        </Badge>
+                      </TableCell>
+                      {(canApproveL1 || canApproveL2) && (
+                        <TableCell className="text-right">
+                          <div className="flex gap-1 justify-end flex-wrap">
+                            {!sev && (
+                              <Button size="sm" variant="ghost" onClick={() => analyzeReq.mutate(r.id)} title="Run AI anomaly check">AI</Button>
+                            )}
+                            {status === "pending" && canApproveL1 && (
+                              <>
+                                <Button size="sm" variant="outline" onClick={() => updateReqStatus.mutate({ id: r.id, status: "approved_l1" })}>Approve L1</Button>
+                                <Button size="sm" variant="outline" onClick={() => updateReqStatus.mutate({ id: r.id, status: "rejected" })}>Reject</Button>
+                              </>
+                            )}
+                            {status === "approved_l1" && canApproveL2 && (
+                              <>
+                                <Button size="sm" onClick={() => updateReqStatus.mutate({ id: r.id, status: "approved" })}>Approve L2</Button>
+                                <Button size="sm" variant="outline" onClick={() => updateReqStatus.mutate({ id: r.id, status: "rejected" })}>Reject</Button>
+                              </>
+                            )}
+                          </div>
+                        </TableCell>
+                      )}
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           </Card>

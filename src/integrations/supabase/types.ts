@@ -181,7 +181,7 @@ export type Database = {
       inventory_items: {
         Row: {
           category: Database["public"]["Enums"]["inventory_category"]
-          center_id: string
+          center_id: string | null
           created_at: string
           created_by: string | null
           current_quantity: number
@@ -198,7 +198,7 @@ export type Database = {
         }
         Insert: {
           category: Database["public"]["Enums"]["inventory_category"]
-          center_id: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           current_quantity?: number
@@ -215,7 +215,7 @@ export type Database = {
         }
         Update: {
           category?: Database["public"]["Enums"]["inventory_category"]
-          center_id?: string
+          center_id?: string | null
           created_at?: string
           created_by?: string | null
           current_quantity?: number
@@ -498,6 +498,16 @@ export type Database = {
       }
       requisitions: {
         Row: {
+          ai_analyzed_at: string | null
+          ai_anomaly_reason: string | null
+          ai_anomaly_score: number | null
+          ai_anomaly_severity: string | null
+          approved_l1_at: string | null
+          approved_l1_by: string | null
+          approved_l1_notes: string | null
+          approved_l2_at: string | null
+          approved_l2_by: string | null
+          approved_l2_notes: string | null
           center_id: string
           created_at: string
           id: string
@@ -510,6 +520,16 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          ai_analyzed_at?: string | null
+          ai_anomaly_reason?: string | null
+          ai_anomaly_score?: number | null
+          ai_anomaly_severity?: string | null
+          approved_l1_at?: string | null
+          approved_l1_by?: string | null
+          approved_l1_notes?: string | null
+          approved_l2_at?: string | null
+          approved_l2_by?: string | null
+          approved_l2_notes?: string | null
           center_id: string
           created_at?: string
           id?: string
@@ -522,6 +542,16 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          ai_analyzed_at?: string | null
+          ai_anomaly_reason?: string | null
+          ai_anomaly_score?: number | null
+          ai_anomaly_severity?: string | null
+          approved_l1_at?: string | null
+          approved_l1_by?: string | null
+          approved_l1_notes?: string | null
+          approved_l2_at?: string | null
+          approved_l2_by?: string | null
+          approved_l2_notes?: string | null
           center_id?: string
           created_at?: string
           id?: string
@@ -1100,6 +1130,8 @@ export type Database = {
         | "rejected"
         | "fulfilled"
         | "cancelled"
+        | "approved_l1"
+        | "approved_l2"
       stock_transaction_type:
         | "stock_in"
         | "stock_out"
@@ -1265,6 +1297,8 @@ export const Constants = {
         "rejected",
         "fulfilled",
         "cancelled",
+        "approved_l1",
+        "approved_l2",
       ],
       stock_transaction_type: [
         "stock_in",

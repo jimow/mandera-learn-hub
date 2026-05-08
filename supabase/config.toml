@@ -2,3 +2,6 @@ project_id = "cbwkrxhzsqebapbydprv"
 
 [functions.send-approval-notification]
 verify_jwt = false
+
+[functions.analyze-requisition]
+verify_jwt = true

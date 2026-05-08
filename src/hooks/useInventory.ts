@@ -6,7 +6,7 @@ import { useUserCenterAssignment } from "./useUserCenterAssignment";
 
 export type InventoryCategory = "food" | "learning_material" | "book" | "furniture" | "equipment" | "stationery" | "other";
 export type StockTxType = "stock_in" | "stock_out" | "adjustment" | "distribution";
-export type RequisitionStatus = "pending" | "approved" | "rejected" | "fulfilled" | "cancelled";
+export type RequisitionStatus = "pending" | "approved" | "approved_l1" | "approved_l2" | "rejected" | "fulfilled" | "cancelled";
 
 function useScope() {
   const { hasRole, isAdmin } = useAuth();
@@ -25,9 +25,12 @@ export function useInventoryItems(categoryFilter?: InventoryCategory) {
   return useQuery({
     queryKey: ["inventory_items", scope.centerId, categoryFilter],
     queryFn: async () => {
-      if (scope.isCenterBased && !scope.centerId) return [];
+      // Ministry items (center_id IS NULL) are visible to everyone with a role.
+      // Center-based users also see their own center's items.
       let q = supabase.from("inventory_items").select("*").eq("is_active", true).order("name");
-      if (scope.isCenterBased && scope.centerId) q = q.eq("center_id", scope.centerId);
+      if (scope.isCenterBased && scope.centerId) {
+        q = q.or(`center_id.is.null,center_id.eq.${scope.centerId}`);
+      }
       if (categoryFilter) q = q.eq("category", categoryFilter);
       const { data, error } = await q;
       if (error) throw error;
@@ -117,10 +120,12 @@ export function useCreateInventoryItem() {
       description?: string;
       sku?: string;
       expiry_date?: string | null;
-      center_id?: string;
+      center_id?: string | null;
     }) => {
-      const center_id = item.center_id ?? scope.centerId;
-      if (!center_id) throw new Error("No center assigned");
+      // Ministry/admin items have no center; center-admin items are tied to their center.
+      const center_id = item.center_id !== undefined
+        ? item.center_id
+        : (scope.isCenterBased ? scope.centerId : null);
       const { data, error } = await supabase.from("inventory_items").insert({
         ...item,
         center_id,
@@ -286,10 +291,30 @@ export function useCreateRequisition() {
       const items = payload.items.map(it => ({ ...it, requisition_id: req.id }));
       const { error: e2 } = await supabase.from("requisition_items").insert(items);
       if (e2) throw e2;
+      // Fire-and-forget AI anomaly analysis
+      supabase.functions.invoke("analyze-requisition", { body: { requisition_id: req.id } })
+        .catch(err => console.warn("anomaly analysis failed", err));
+      return req;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requisitions"] });
-      toast.success("Requisition submitted");
+      toast.success("Requisition submitted — AI is analyzing for anomalies");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useAnalyzeRequisition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.functions.invoke("analyze-requisition", { body: { requisition_id: id } });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["requisitions"] });
+      toast.success("AI analysis complete");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -299,17 +324,31 @@ export function useUpdateRequisitionStatus() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: RequisitionStatus }) => {
-      const { error } = await supabase.from("requisitions").update({
-        status,
-        reviewed_by: user?.id,
-        reviewed_at: new Date().toISOString(),
-      }).eq("id", id);
+    mutationFn: async ({ id, status, notes }: { id: string; status: RequisitionStatus; notes?: string }) => {
+      const updates: any = { status };
+      const now = new Date().toISOString();
+      if (status === "approved_l1") {
+        updates.approved_l1_by = user?.id;
+        updates.approved_l1_at = now;
+        if (notes) updates.approved_l1_notes = notes;
+      } else if (status === "approved" || status === "approved_l2") {
+        updates.approved_l2_by = user?.id;
+        updates.approved_l2_at = now;
+        if (notes) updates.approved_l2_notes = notes;
+        updates.reviewed_by = user?.id;
+        updates.reviewed_at = now;
+      } else {
+        updates.reviewed_by = user?.id;
+        updates.reviewed_at = now;
+      }
+      const { error } = await supabase.from("requisitions").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requisitions"] });
       toast.success("Requisition updated");
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 }
+

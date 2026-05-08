@@ -6,6 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useCreateInventoryItem, useUpdateInventoryItem, type InventoryCategory } from "@/hooks/useInventory";
+import { useAuth } from "@/contexts/AuthContext";
+import { Badge } from "@/components/ui/badge";
 
 const CATS: { value: InventoryCategory; label: string }[] = [
   { value: "food", label: "Food Rations" },
@@ -29,6 +31,7 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
     unit_cost: 0, description: "", sku: "", expiry_date: null,
   });
 
+  const { isAdmin } = useAuth();
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
 
@@ -39,13 +42,15 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
 
   const submit = async () => {
     const { supplier_id, ...rest } = form;
-    const payload = {
+    const payload: any = {
       ...rest,
       current_quantity: Number(form.current_quantity),
       reorder_level: Number(form.reorder_level),
       unit_cost: Number(form.unit_cost),
       expiry_date: form.expiry_date || null,
     };
+    // Admins manage the ministry catalog → center_id stays null unless explicitly set
+    if (isAdmin() && !item?.id) payload.center_id = null;
     if (item?.id) await update.mutateAsync({ id: item.id, ...payload });
     else await create.mutateAsync(payload);
     onOpenChange(false);
@@ -54,7 +59,15 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-lg max-h-[90vh] overflow-y-auto">
-        <DialogHeader><DialogTitle>{item?.id ? "Edit" : "Add"} Inventory Item</DialogTitle></DialogHeader>
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            {item?.id ? "Edit" : "Add"} Inventory Item
+            {isAdmin() && !item?.id && <Badge variant="secondary">Ministry catalog</Badge>}
+          </DialogTitle>
+          {isAdmin() && !item?.id && (
+            <p className="text-xs text-muted-foreground">Items added here are part of the central ministry catalog and visible to all centers.</p>
+          )}
+        </DialogHeader>
         <div className="space-y-3">
           <div>
             <Label>Name *</Label>
