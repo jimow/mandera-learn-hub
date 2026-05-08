@@ -31,6 +31,7 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
     unit_cost: 0, description: "", sku: "", expiry_date: null,
   });
 
+  const { isAdmin } = useAuth();
   const create = useCreateInventoryItem();
   const update = useUpdateInventoryItem();
 
@@ -41,13 +42,15 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
 
   const submit = async () => {
     const { supplier_id, ...rest } = form;
-    const payload = {
+    const payload: any = {
       ...rest,
       current_quantity: Number(form.current_quantity),
       reorder_level: Number(form.reorder_level),
       unit_cost: Number(form.unit_cost),
       expiry_date: form.expiry_date || null,
     };
+    // Admins manage the ministry catalog → center_id stays null unless explicitly set
+    if (isAdmin() && !item?.id) payload.center_id = null;
     if (item?.id) await update.mutateAsync({ id: item.id, ...payload });
     else await create.mutateAsync(payload);
     onOpenChange(false);
