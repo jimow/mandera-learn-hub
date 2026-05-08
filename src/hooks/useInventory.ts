@@ -25,9 +25,12 @@ export function useInventoryItems(categoryFilter?: InventoryCategory) {
   return useQuery({
     queryKey: ["inventory_items", scope.centerId, categoryFilter],
     queryFn: async () => {
-      if (scope.isCenterBased && !scope.centerId) return [];
+      // Ministry items (center_id IS NULL) are visible to everyone with a role.
+      // Center-based users also see their own center's items.
       let q = supabase.from("inventory_items").select("*").eq("is_active", true).order("name");
-      if (scope.isCenterBased && scope.centerId) q = q.eq("center_id", scope.centerId);
+      if (scope.isCenterBased && scope.centerId) {
+        q = q.or(`center_id.is.null,center_id.eq.${scope.centerId}`);
+      }
       if (categoryFilter) q = q.eq("category", categoryFilter);
       const { data, error } = await q;
       if (error) throw error;
@@ -117,10 +120,12 @@ export function useCreateInventoryItem() {
       description?: string;
       sku?: string;
       expiry_date?: string | null;
-      center_id?: string;
+      center_id?: string | null;
     }) => {
-      const center_id = item.center_id ?? scope.centerId;
-      if (!center_id) throw new Error("No center assigned");
+      // Ministry/admin items have no center; center-admin items are tied to their center.
+      const center_id = item.center_id !== undefined
+        ? item.center_id
+        : (scope.isCenterBased ? scope.centerId : null);
       const { data, error } = await supabase.from("inventory_items").insert({
         ...item,
         center_id,
