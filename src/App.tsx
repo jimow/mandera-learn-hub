@@ -19,6 +19,7 @@ import ApiDocumentation from "./pages/ApiDocumentation";
 import MapView from "./pages/MapView";
 import CenterDetails from "./pages/CenterDetails";
 import Inventory from "./pages/Inventory";
+import Reports from "./pages/Reports";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -173,6 +174,16 @@ function AppRoutes() {
           <ProtectedRoute>
             <DashboardLayout onLogout={signOut}>
               <Inventory />
+            </DashboardLayout>
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reports"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <Reports />
             </DashboardLayout>
           </ProtectedRoute>
         }
