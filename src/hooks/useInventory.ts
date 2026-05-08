@@ -291,10 +291,30 @@ export function useCreateRequisition() {
       const items = payload.items.map(it => ({ ...it, requisition_id: req.id }));
       const { error: e2 } = await supabase.from("requisition_items").insert(items);
       if (e2) throw e2;
+      // Fire-and-forget AI anomaly analysis
+      supabase.functions.invoke("analyze-requisition", { body: { requisition_id: req.id } })
+        .catch(err => console.warn("anomaly analysis failed", err));
+      return req;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requisitions"] });
-      toast.success("Requisition submitted");
+      toast.success("Requisition submitted — AI is analyzing for anomalies");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useAnalyzeRequisition() {
+  const qc = useQueryClient();
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { data, error } = await supabase.functions.invoke("analyze-requisition", { body: { requisition_id: id } });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      qc.invalidateQueries({ queryKey: ["requisitions"] });
+      toast.success("AI analysis complete");
     },
     onError: (e: Error) => toast.error(e.message),
   });
@@ -304,17 +324,31 @@ export function useUpdateRequisitionStatus() {
   const qc = useQueryClient();
   const { user } = useAuth();
   return useMutation({
-    mutationFn: async ({ id, status }: { id: string; status: RequisitionStatus }) => {
-      const { error } = await supabase.from("requisitions").update({
-        status,
-        reviewed_by: user?.id,
-        reviewed_at: new Date().toISOString(),
-      }).eq("id", id);
+    mutationFn: async ({ id, status, notes }: { id: string; status: RequisitionStatus; notes?: string }) => {
+      const updates: any = { status };
+      const now = new Date().toISOString();
+      if (status === "approved_l1") {
+        updates.approved_l1_by = user?.id;
+        updates.approved_l1_at = now;
+        if (notes) updates.approved_l1_notes = notes;
+      } else if (status === "approved" || status === "approved_l2") {
+        updates.approved_l2_by = user?.id;
+        updates.approved_l2_at = now;
+        if (notes) updates.approved_l2_notes = notes;
+        updates.reviewed_by = user?.id;
+        updates.reviewed_at = now;
+      } else {
+        updates.reviewed_by = user?.id;
+        updates.reviewed_at = now;
+      }
+      const { error } = await supabase.from("requisitions").update(updates).eq("id", id);
       if (error) throw error;
     },
     onSuccess: () => {
       qc.invalidateQueries({ queryKey: ["requisitions"] });
       toast.success("Requisition updated");
     },
+    onError: (e: Error) => toast.error(e.message),
   });
 }
+
