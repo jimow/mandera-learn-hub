@@ -1,4 +1,4 @@
-import { GraduationCap, Users, School, TrendingUp, MapPin } from "lucide-react";
+import { GraduationCap, Users, School, TrendingUp, MapPin, Package, Truck, Activity, AlertCircle, ClipboardCheck, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { StatCard } from "@/components/dashboard/StatCard";
 import { RecentActivity } from "@/components/dashboard/RecentActivity";
@@ -11,6 +11,8 @@ import { useCenters } from "@/hooks/useCenters";
 import { useUserCenterAssignment } from "@/hooks/useUserCenterAssignment";
 import { useAuth } from "@/contexts/AuthContext";
 import { Badge } from "@/components/ui/badge";
+import { useInventoryItems, useMinistryDeliveries, useUtilizationLogs, useRequisitions } from "@/hooks/useInventory";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
 export default function Dashboard() {
   const { data: students } = useStudents();
