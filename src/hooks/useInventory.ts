@@ -63,11 +63,18 @@ export function useRequisitions() {
     queryKey: ["requisitions", scope.centerId],
     queryFn: async () => {
       if (scope.isCenterBased && !scope.centerId) return [];
-      let q = supabase.from("requisitions").select("*, requisition_items(*), ecde_centers(name)").order("created_at", { ascending: false });
+      let q = supabase.from("requisitions").select("*, requisition_items(*)").order("created_at", { ascending: false });
       if (scope.isCenterBased && scope.centerId) q = q.eq("center_id", scope.centerId);
       const { data, error } = await q;
       if (error) throw error;
-      return data || [];
+      const rows = data || [];
+      const centerIds = Array.from(new Set(rows.map((r: any) => r.center_id).filter(Boolean)));
+      let centers: any[] = [];
+      if (centerIds.length) {
+        const { data: cs } = await supabase.from("ecde_centers").select("id, name").in("id", centerIds);
+        centers = cs || [];
+      }
+      return rows.map((r: any) => ({ ...r, ecde_centers: centers.find(c => c.id === r.center_id) || null }));
     },
     enabled: !scope.isCenterBased || !scope.isLoading,
   });
