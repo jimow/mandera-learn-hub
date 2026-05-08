@@ -233,7 +233,141 @@ export default function Dashboard() {
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* Operations Snapshot */}
+      {(inventoryItems.length > 0 || deliveries.length > 0 || utilization.length > 0 || requisitions.length > 0) && (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <StatCard
+            title="Inventory Items"
+            value={inventoryItems.length}
+            icon={<Package className="w-6 h-6" />}
+          />
+          <StatCard
+            title="Ministry Deliveries"
+            value={deliveries.length}
+            icon={<Truck className="w-6 h-6" />}
+            variant="primary"
+          />
+          <StatCard
+            title="Utilization Logs"
+            value={utilization.length}
+            icon={<Activity className="w-6 h-6" />}
+            variant="secondary"
+          />
+          <StatCard
+            title="Pending Requisitions"
+            value={requisitions.filter((r: any) => r.status === "pending").length}
+            icon={<ClipboardCheck className="w-6 h-6" />}
+            variant="accent"
+          />
+        </div>
+      )}
+
+      {/* Low Stock & Pending Approvals */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {(() => {
+          const lowStock = inventoryItems.filter((i: any) => Number(i.current_quantity) <= Number(i.reorder_level));
+          if (lowStock.length === 0) return null;
+          return (
+            <Card className="border-destructive/30">
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2 text-destructive">
+                  <AlertCircle className="w-4 h-4" /> Low Stock Alerts ({lowStock.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {lowStock.slice(0, 5).map((i: any) => (
+                  <div key={i.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                    <div>
+                      <p className="font-medium text-sm">{i.name}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{i.category}</p>
+                    </div>
+                    <Badge variant="destructive">{i.current_quantity} {i.unit}</Badge>
+                  </div>
+                ))}
+                <Link to="/inventory" className="block text-center text-sm text-primary mt-3 hover:underline">
+                  View all inventory →
+                </Link>
+              </CardContent>
+            </Card>
+          );
+        })()}
+
+        {(() => {
+          const pending = (filteredStudents || []).filter((s: any) => s.approval_status === "pending" || s.approval_status === "approved_subcounty");
+          if (pending.length === 0) return null;
+          return (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <ClipboardCheck className="w-4 h-4 text-info" /> Pending Approvals ({pending.length})
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {pending.slice(0, 5).map((s: any) => (
+                  <div key={s.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50">
+                    <div>
+                      <p className="font-medium text-sm">{s.full_name}</p>
+                      <p className="text-xs text-muted-foreground">{s.ecde_centers?.name || "—"}</p>
+                    </div>
+                    <Badge variant="outline" className="capitalize">{(s.approval_status || "pending").replace("_", " ")}</Badge>
+                  </div>
+                ))}
+                <Link to="/approvals" className="block text-center text-sm text-primary mt-3 hover:underline">
+                  Review approvals →
+                </Link>
+              </CardContent>
+            </Card>
+          );
+        })()}
+      </div>
+
+      {/* Recent Deliveries & Utilization */}
+      {(deliveries.length > 0 || utilization.length > 0) && (
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          {deliveries.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Truck className="w-4 h-4 text-primary" /> Recent Ministry Deliveries
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {deliveries.slice(0, 5).map((d: any) => (
+                  <div key={d.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 text-sm">
+                    <div>
+                      <p className="font-medium">{d.item_name}</p>
+                      <p className="text-xs text-muted-foreground">{d.delivery_date} · {d.ecde_centers?.name || ""}</p>
+                    </div>
+                    <Badge>{d.quantity} {d.unit}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+          {utilization.length > 0 && (
+            <Card>
+              <CardHeader className="pb-3">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Activity className="w-4 h-4 text-secondary" /> Recent Utilization
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-2">
+                {utilization.slice(0, 5).map((u: any) => (
+                  <div key={u.id} className="flex items-center justify-between p-2 rounded-md bg-muted/50 text-sm">
+                    <div>
+                      <p className="font-medium">{u.inventory_items?.name || "Item"}</p>
+                      <p className="text-xs text-muted-foreground">{u.utilization_date} · {u.beneficiaries || 0} beneficiaries</p>
+                    </div>
+                    <Badge variant="secondary">{u.quantity}</Badge>
+                  </div>
+                ))}
+              </CardContent>
+            </Card>
+          )}
+        </div>
+      )}
+
+
       <div className="bg-card rounded-xl border border-border p-6 animate-fade-in">
         <h3 className="font-display font-semibold text-lg mb-4">Quick Actions</h3>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
