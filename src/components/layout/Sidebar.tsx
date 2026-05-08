@@ -63,6 +63,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       icon: School,
       visible: showCentersMenu,
     },
+    {
+      name: "Store & Inventory",
+      href: "/inventory",
+      icon: Package,
+      visible: isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("education_officer") || hasRole("governor"),
+    },
     { 
       name: "Administrative Areas", 
       href: "/administrative-areas", 
