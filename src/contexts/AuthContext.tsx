@@ -60,7 +60,7 @@ interface AuthContextType {
   signOut: () => Promise<void>;
   hasRole: (role: AppRole) => boolean;
   hasAnyRole: (roles: AppRole[]) => boolean;
-  hasPermission: (resource: string, action: "create" | "read" | "update" | "delete" | "transfer") => boolean;
+  hasPermission: (resource: string, action: PermissionAction) => boolean;
   isSuperAdmin: () => boolean;
   isAdmin: () => boolean;
   refreshRoles: () => Promise<void>;
