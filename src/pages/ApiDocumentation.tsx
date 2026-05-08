@@ -50,7 +50,7 @@ import {
   Check,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useApiKeys, useCreateApiKey, useRevokeApiKey, useDeleteApiKey } from "@/hooks/useApiKeys";
+import { useApiKeys, useCreateApiKey, useRevokeApiKey, useDeleteApiKey, useActivateApiKey } from "@/hooks/useApiKeys";
 import { useToast } from "@/hooks/use-toast";
 
 const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
