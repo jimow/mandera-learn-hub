@@ -13,6 +13,7 @@ import {
   MapPin,
   Code,
   Package,
+  FileText,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -92,6 +93,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/roles", 
       icon: Shield,
       visible: isSuperAdmin(),
+    },
+    {
+      name: "Reports",
+      href: "/reports",
+      icon: FileText,
+      visible: isAdmin() || isCenterAdmin || hasRole("education_officer") || hasRole("governor") || hasRole("teacher"),
     },
     { 
       name: "API Documentation", 
