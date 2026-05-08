@@ -120,15 +120,15 @@ export default function Inventory() {
               <Activity className="w-4 h-4 mr-2" />Record Utilization
             </Button>
           )}
+          {canRequest && (
+            <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
+              <ClipboardList className="w-4 h-4 mr-2" />New Requisition
+            </Button>
+          )}
           {canManage && (
-            <>
-              <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
-                <ClipboardList className="w-4 h-4 mr-2" />New Requisition
-              </Button>
-              <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
-                <Plus className="w-4 h-4 mr-2" />Add Item
-              </Button>
-            </>
+            <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
+              <Plus className="w-4 h-4 mr-2" />Add Item
+            </Button>
           )}
         </div>
       </div>
