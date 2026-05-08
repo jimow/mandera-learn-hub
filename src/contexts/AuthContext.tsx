@@ -167,30 +167,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return checkRoles.some((role) => roles.includes(role));
   };
 
-  const hasPermission = (
-    resource: string,
-    action: "create" | "read" | "update" | "delete" | "transfer"
-  ): boolean => {
-    // Super admins always have full access
+  const hasPermission = (resource: string, action: PermissionAction): boolean => {
     if (roles.includes("super_admin")) return true;
-    
     const permission = permissions.find((p) => p.resource === resource);
     if (!permission) return false;
-    
-    switch (action) {
-      case "create":
-        return permission.can_create;
-      case "read":
-        return permission.can_read;
-      case "update":
-        return permission.can_update;
-      case "delete":
-        return permission.can_delete;
-      case "transfer":
-        return permission.can_transfer;
-      default:
-        return false;
-    }
+    const key = `can_${action}` as keyof Permission;
+    return Boolean(permission[key]);
   };
 
   const isSuperAdmin = (): boolean => {
