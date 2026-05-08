@@ -12,6 +12,7 @@ import {
   X,
   MapPin,
   Code,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -61,6 +62,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/centers", 
       icon: School,
       visible: showCentersMenu,
+    },
+    {
+      name: "Store & Inventory",
+      href: "/inventory",
+      icon: Package,
+      visible: isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("education_officer") || hasRole("governor"),
     },
     { 
       name: "Administrative Areas", 

@@ -178,6 +178,71 @@ export type Database = {
           },
         ]
       }
+      inventory_items: {
+        Row: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          center_id: string
+          created_at: string
+          created_by: string | null
+          current_quantity: number
+          description: string | null
+          expiry_date: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          reorder_level: number
+          sku: string | null
+          supplier_id: string | null
+          unit: string
+          unit_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          center_id: string
+          created_at?: string
+          created_by?: string | null
+          current_quantity?: number
+          description?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          reorder_level?: number
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["inventory_category"]
+          center_id?: string
+          created_at?: string
+          created_by?: string | null
+          current_quantity?: number
+          description?: string | null
+          expiry_date?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          reorder_level?: number
+          sku?: string | null
+          supplier_id?: string | null
+          unit?: string
+          unit_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "inventory_items_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       notifications: {
         Row: {
           created_at: string
@@ -288,6 +353,159 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      requisition_items: {
+        Row: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          created_at: string
+          id: string
+          item_id: string | null
+          item_name: string
+          notes: string | null
+          quantity: number
+          requisition_id: string
+          unit: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["inventory_category"]
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          item_name: string
+          notes?: string | null
+          quantity: number
+          requisition_id: string
+          unit?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["inventory_category"]
+          created_at?: string
+          id?: string
+          item_id?: string | null
+          item_name?: string
+          notes?: string | null
+          quantity?: number
+          requisition_id?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "requisition_items_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "requisition_items_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "requisitions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      requisitions: {
+        Row: {
+          center_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          reason: string | null
+          requested_by: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["requisition_status"]
+          updated_at: string
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["requisition_status"]
+          updated_at?: string
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          reason?: string | null
+          requested_by?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["requisition_status"]
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      stock_transactions: {
+        Row: {
+          center_id: string
+          created_at: string
+          id: string
+          item_id: string
+          notes: string | null
+          performed_by: string | null
+          quantity: number
+          reason: string | null
+          reference_number: string | null
+          supplier_id: string | null
+          transaction_date: string
+          transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
+          unit_cost: number | null
+        }
+        Insert: {
+          center_id: string
+          created_at?: string
+          id?: string
+          item_id: string
+          notes?: string | null
+          performed_by?: string | null
+          quantity: number
+          reason?: string | null
+          reference_number?: string | null
+          supplier_id?: string | null
+          transaction_date?: string
+          transaction_type: Database["public"]["Enums"]["stock_transaction_type"]
+          unit_cost?: number | null
+        }
+        Update: {
+          center_id?: string
+          created_at?: string
+          id?: string
+          item_id?: string
+          notes?: string | null
+          performed_by?: string | null
+          quantity?: number
+          reason?: string | null
+          reference_number?: string | null
+          supplier_id?: string | null
+          transaction_date?: string
+          transaction_type?: Database["public"]["Enums"]["stock_transaction_type"]
+          unit_cost?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stock_transactions_item_id_fkey"
+            columns: ["item_id"]
+            isOneToOne: false
+            referencedRelation: "inventory_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stock_transactions_supplier_id_fkey"
+            columns: ["supplier_id"]
+            isOneToOne: false
+            referencedRelation: "suppliers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       students: {
         Row: {
@@ -413,6 +631,42 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      suppliers: {
+        Row: {
+          address: string | null
+          contact_person: string | null
+          created_at: string
+          email: string | null
+          id: string
+          is_active: boolean | null
+          name: string
+          phone: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          contact_person?: string | null
+          created_at?: string
+          email?: string | null
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          phone?: string | null
+          updated_at?: string
+        }
+        Relationships: []
       }
       teacher_transfers: {
         Row: {
@@ -725,6 +979,25 @@ export type Database = {
         | "rejected"
       class_level: "pp1" | "pp2"
       gender: "male" | "female"
+      inventory_category:
+        | "food"
+        | "learning_material"
+        | "book"
+        | "furniture"
+        | "equipment"
+        | "stationery"
+        | "other"
+      requisition_status:
+        | "pending"
+        | "approved"
+        | "rejected"
+        | "fulfilled"
+        | "cancelled"
+      stock_transaction_type:
+        | "stock_in"
+        | "stock_out"
+        | "adjustment"
+        | "distribution"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -870,6 +1143,28 @@ export const Constants = {
       ],
       class_level: ["pp1", "pp2"],
       gender: ["male", "female"],
+      inventory_category: [
+        "food",
+        "learning_material",
+        "book",
+        "furniture",
+        "equipment",
+        "stationery",
+        "other",
+      ],
+      requisition_status: [
+        "pending",
+        "approved",
+        "rejected",
+        "fulfilled",
+        "cancelled",
+      ],
+      stock_transaction_type: [
+        "stock_in",
+        "stock_out",
+        "adjustment",
+        "distribution",
+      ],
     },
   },
 } as const
