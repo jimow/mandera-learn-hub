@@ -257,6 +257,7 @@ export default function Inventory() {
             </Table>
           </Card>
         </TabsContent>
+        )}
 
         <TabsContent value="deliveries">
           <Card>
