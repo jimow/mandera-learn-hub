@@ -92,7 +92,7 @@ export default function RolesManagement() {
     try {
       const { error } = await supabase
         .from("permissions")
-        .update({ [field]: value })
+        .update({ [field]: value } as any)
         .eq("id", permissionId);
       
       if (error) throw error;
