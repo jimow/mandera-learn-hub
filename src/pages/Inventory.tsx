@@ -1,5 +1,5 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Package, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, ClipboardList, Truck, Apple, BookOpen, Armchair, PenTool, Wrench, Trash2, Edit } from "lucide-react";
+import { Plus, Search, Package, AlertTriangle, ArrowDownToLine, ArrowUpFromLine, ClipboardList, Truck, Apple, BookOpen, Armchair, PenTool, Wrench, Trash2, Edit, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -8,7 +8,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-  useInventoryItems, useStockTransactions, useRequisitions, useSuppliers,
+  useInventoryItems, useStockTransactions, useRequisitions,
+  useMinistryDeliveries, useUtilizationLogs,
   useDeleteInventoryItem, useUpdateRequisitionStatus,
   type InventoryCategory,
 } from "@/hooks/useInventory";
@@ -17,7 +18,8 @@ import { useUserCenterAssignment } from "@/hooks/useUserCenterAssignment";
 import { InventoryItemDialog } from "@/components/inventory/InventoryItemDialog";
 import { StockTransactionDialog } from "@/components/inventory/StockTransactionDialog";
 import { RequisitionDialog } from "@/components/inventory/RequisitionDialog";
-import { SupplierDialog } from "@/components/inventory/SupplierDialog";
+import { MinistryDeliveryDialog } from "@/components/inventory/MinistryDeliveryDialog";
+import { UtilizationLogDialog } from "@/components/inventory/UtilizationLogDialog";
 import { format } from "date-fns";
 
 const CATEGORY_META: Record<InventoryCategory, { label: string; icon: any; color: string }> = {
@@ -39,17 +41,23 @@ export default function Inventory() {
   const [stockMode, setStockMode] = useState<"stock_in" | "stock_out">("stock_in");
   const [stockItem, setStockItem] = useState<any>(null);
   const [reqDialogOpen, setReqDialogOpen] = useState(false);
-  const [supplierDialogOpen, setSupplierDialogOpen] = useState(false);
+  const [deliveryDialogOpen, setDeliveryDialogOpen] = useState(false);
+  const [utilDialogOpen, setUtilDialogOpen] = useState(false);
+  const [utilItem, setUtilItem] = useState<any>(null);
 
-  const { hasRole, isAdmin } = useAuth();
+  const { hasRole, isAdmin, hasPermission } = useAuth();
   const { data: assignment } = useUserCenterAssignment();
   const isCenterAdmin = hasRole("center_admin");
+  const isTeacher = hasRole("teacher");
   const canManage = isAdmin() || isCenterAdmin;
+  const canRecordDelivery = isAdmin() || hasPermission("inventory", "record_delivery") || isCenterAdmin;
+  const canRecordUtilization = isAdmin() || hasPermission("inventory", "record_utilization") || isCenterAdmin || isTeacher;
 
   const { data: items = [], isLoading } = useInventoryItems();
   const { data: transactions = [] } = useStockTransactions();
   const { data: requisitions = [] } = useRequisitions();
-  const { data: suppliers = [] } = useSuppliers();
+  const { data: deliveries = [] } = useMinistryDeliveries();
+  const { data: utilizations = [] } = useUtilizationLogs();
   const deleteItem = useDeleteInventoryItem();
   const updateReqStatus = useUpdateRequisitionStatus();
 
@@ -73,8 +81,9 @@ export default function Inventory() {
   const handleStockIn = (item: any) => { setStockItem(item); setStockMode("stock_in"); setStockDialogOpen(true); };
   const handleStockOut = (item: any) => { setStockItem(item); setStockMode("stock_out"); setStockDialogOpen(true); };
   const handleEdit = (item: any) => { setEditingItem(item); setItemDialogOpen(true); };
+  const handleUtilize = (item: any) => { setUtilItem(item); setUtilDialogOpen(true); };
 
-  if (!isAdmin() && isCenterAdmin && !assignment?.center_id) {
+  if (!isAdmin() && (isCenterAdmin || isTeacher) && !assignment?.center_id) {
     return (
       <div className="p-8 text-center">
         <Package className="w-12 h-12 mx-auto text-muted-foreground mb-4" />
@@ -89,24 +98,32 @@ export default function Inventory() {
       <div className="flex items-center justify-between flex-wrap gap-4">
         <div>
           <h1 className="text-2xl font-display font-bold">Store & Inventory</h1>
-          <p className="text-muted-foreground text-sm">Manage food rations, books, materials, furniture and equipment</p>
+          <p className="text-muted-foreground text-sm">Track ministry deliveries, stock and how items are utilized</p>
         </div>
-        {canManage && (
-          <div className="flex gap-2 flex-wrap">
-            <Button variant="outline" onClick={() => setSupplierDialogOpen(true)}>
-              <Truck className="w-4 h-4 mr-2" />Suppliers
+        <div className="flex gap-2 flex-wrap">
+          {canRecordDelivery && (
+            <Button variant="outline" onClick={() => setDeliveryDialogOpen(true)}>
+              <Truck className="w-4 h-4 mr-2" />Record Delivery
             </Button>
-            <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
-              <ClipboardList className="w-4 h-4 mr-2" />New Requisition
+          )}
+          {canRecordUtilization && (
+            <Button variant="outline" onClick={() => { setUtilItem(null); setUtilDialogOpen(true); }}>
+              <Activity className="w-4 h-4 mr-2" />Record Utilization
             </Button>
-            <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
-              <Plus className="w-4 h-4 mr-2" />Add Item
-            </Button>
-          </div>
-        )}
+          )}
+          {canManage && (
+            <>
+              <Button variant="outline" onClick={() => setReqDialogOpen(true)}>
+                <ClipboardList className="w-4 h-4 mr-2" />New Requisition
+              </Button>
+              <Button onClick={() => { setEditingItem(null); setItemDialogOpen(true); }}>
+                <Plus className="w-4 h-4 mr-2" />Add Item
+              </Button>
+            </>
+          )}
+        </div>
       </div>
 
-      {/* Stats */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
         <Card className="p-4">
           <div className="flex items-center justify-between">
@@ -143,9 +160,10 @@ export default function Inventory() {
       <Tabs defaultValue="items">
         <TabsList>
           <TabsTrigger value="items">Items</TabsTrigger>
+          <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
+          <TabsTrigger value="utilization">Utilization</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
           <TabsTrigger value="requisitions">Requisitions</TabsTrigger>
-          <TabsTrigger value="suppliers">Suppliers</TabsTrigger>
         </TabsList>
 
         <TabsContent value="items" className="space-y-4">
@@ -181,7 +199,7 @@ export default function Inventory() {
               <TableBody>
                 {isLoading && (<TableRow><TableCell colSpan={7} className="text-center py-8">Loading...</TableCell></TableRow>)}
                 {!isLoading && filteredItems.length === 0 && (
-                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No items found. Add your first item to get started.</TableCell></TableRow>
+                  <TableRow><TableCell colSpan={7} className="text-center py-8 text-muted-foreground">No items found.</TableCell></TableRow>
                 )}
                 {filteredItems.map((it: any) => {
                   const meta = CATEGORY_META[it.category as InventoryCategory];
@@ -207,10 +225,13 @@ export default function Inventory() {
                       <TableCell className="text-sm text-muted-foreground">{it.expiry_date ? format(new Date(it.expiry_date), "PP") : "—"}</TableCell>
                       <TableCell className="text-right">
                         <div className="flex justify-end gap-1">
+                          {canRecordUtilization && (
+                            <Button size="sm" variant="ghost" onClick={() => handleUtilize(it)} title="Record utilization"><Activity className="w-4 h-4" /></Button>
+                          )}
                           {canManage && (
                             <>
-                              <Button size="sm" variant="ghost" onClick={() => handleStockIn(it)} title="Stock In"><ArrowDownToLine className="w-4 h-4" /></Button>
-                              <Button size="sm" variant="ghost" onClick={() => handleStockOut(it)} title="Stock Out"><ArrowUpFromLine className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleStockIn(it)} title="Stock In (adjustment)"><ArrowDownToLine className="w-4 h-4" /></Button>
+                              <Button size="sm" variant="ghost" onClick={() => handleStockOut(it)} title="Stock Out (adjustment)"><ArrowUpFromLine className="w-4 h-4" /></Button>
                               <Button size="sm" variant="ghost" onClick={() => handleEdit(it)}><Edit className="w-4 h-4" /></Button>
                               <Button size="sm" variant="ghost" onClick={() => deleteItem.mutate(it.id)}><Trash2 className="w-4 h-4 text-destructive" /></Button>
                             </>
@@ -220,6 +241,66 @@ export default function Inventory() {
                     </TableRow>
                   );
                 })}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="deliveries">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead>Category</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead>Delivered By</TableHead>
+                  <TableHead>Reference</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {deliveries.length === 0 && (<TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No deliveries recorded.</TableCell></TableRow>)}
+                {deliveries.map((d: any) => (
+                  <TableRow key={d.id}>
+                    <TableCell>{format(new Date(d.delivery_date), "PP")}</TableCell>
+                    <TableCell className="font-medium">{d.item_name}</TableCell>
+                    <TableCell><Badge variant="outline">{CATEGORY_META[d.category as InventoryCategory]?.label ?? d.category}</Badge></TableCell>
+                    <TableCell className="text-right">{Number(d.quantity)} {d.unit}</TableCell>
+                    <TableCell className="text-sm">{d.delivered_by ?? "—"}</TableCell>
+                    <TableCell className="text-sm text-muted-foreground">{d.reference_number ?? "—"}</TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="utilization">
+          <Card>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Date</TableHead>
+                  <TableHead>Item</TableHead>
+                  <TableHead className="text-right">Quantity</TableHead>
+                  <TableHead>Purpose</TableHead>
+                  <TableHead>Beneficiaries</TableHead>
+                  <TableHead>Class</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {utilizations.length === 0 && (<TableRow><TableCell colSpan={6} className="text-center py-8 text-muted-foreground">No utilization recorded.</TableCell></TableRow>)}
+                {utilizations.map((u: any) => (
+                  <TableRow key={u.id}>
+                    <TableCell>{format(new Date(u.utilization_date), "PP")}</TableCell>
+                    <TableCell className="font-medium">{u.inventory_items?.name ?? "—"}</TableCell>
+                    <TableCell className="text-right">{Number(u.quantity)} {u.inventory_items?.unit}</TableCell>
+                    <TableCell className="text-sm">{u.purpose ?? "—"}</TableCell>
+                    <TableCell>{u.beneficiaries ?? "—"}</TableCell>
+                    <TableCell>{u.class_level ? <Badge variant="outline">{u.class_level.toUpperCase()}</Badge> : "—"}</TableCell>
+                  </TableRow>
+                ))}
               </TableBody>
             </Table>
           </Card>
@@ -245,7 +326,7 @@ export default function Inventory() {
                     <TableCell>{format(new Date(t.transaction_date), "PP")}</TableCell>
                     <TableCell>{t.inventory_items?.name ?? "—"}</TableCell>
                     <TableCell>
-                      <Badge variant={t.transaction_type === "stock_in" ? "default" : t.transaction_type === "stock_out" || t.transaction_type === "distribution" ? "secondary" : "outline"}>
+                      <Badge variant={t.transaction_type === "stock_in" ? "default" : "secondary"}>
                         {t.transaction_type.replace("_", " ")}
                       </Badge>
                     </TableCell>
@@ -301,55 +382,34 @@ export default function Inventory() {
             </Table>
           </Card>
         </TabsContent>
-
-        <TabsContent value="suppliers">
-          <Card>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Name</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead>Phone</TableHead>
-                  <TableHead>Email</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {suppliers.length === 0 && (<TableRow><TableCell colSpan={4} className="text-center py-8 text-muted-foreground">No suppliers added.</TableCell></TableRow>)}
-                {suppliers.map((s: any) => (
-                  <TableRow key={s.id}>
-                    <TableCell className="font-medium">{s.name}</TableCell>
-                    <TableCell>{s.contact_person ?? "—"}</TableCell>
-                    <TableCell>{s.phone ?? "—"}</TableCell>
-                    <TableCell>{s.email ?? "—"}</TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </Card>
-        </TabsContent>
       </Tabs>
 
       <InventoryItemDialog
         open={itemDialogOpen}
         onOpenChange={(o) => { setItemDialogOpen(o); if (!o) setEditingItem(null); }}
         item={editingItem}
-        suppliers={suppliers}
       />
       <StockTransactionDialog
         open={stockDialogOpen}
         onOpenChange={setStockDialogOpen}
         item={stockItem}
         mode={stockMode}
-        suppliers={suppliers}
       />
       <RequisitionDialog
         open={reqDialogOpen}
         onOpenChange={setReqDialogOpen}
         items={items}
       />
-      <SupplierDialog
-        open={supplierDialogOpen}
-        onOpenChange={setSupplierDialogOpen}
+      <MinistryDeliveryDialog
+        open={deliveryDialogOpen}
+        onOpenChange={setDeliveryDialogOpen}
+        items={items}
+      />
+      <UtilizationLogDialog
+        open={utilDialogOpen}
+        onOpenChange={(o) => { setUtilDialogOpen(o); if (!o) setUtilItem(null); }}
+        items={items}
+        preselectedItem={utilItem}
       />
     </div>
   );
