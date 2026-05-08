@@ -168,9 +168,9 @@ export default function Inventory() {
       </div>
       )}
 
-      <Tabs defaultValue="items">
+      <Tabs defaultValue={canViewItems ? "items" : "requisitions"}>
         <TabsList>
-          <TabsTrigger value="items">Items</TabsTrigger>
+          {canViewItems && <TabsTrigger value="items">Items</TabsTrigger>}
           <TabsTrigger value="deliveries">Deliveries</TabsTrigger>
           <TabsTrigger value="utilization">Utilization</TabsTrigger>
           <TabsTrigger value="transactions">Transactions</TabsTrigger>
