@@ -12,6 +12,7 @@ import {
   X,
   MapPin,
   Code,
+  Package,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
