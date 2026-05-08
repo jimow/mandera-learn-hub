@@ -60,6 +60,10 @@ export default function Inventory() {
   const { data: utilizations = [] } = useUtilizationLogs();
   const deleteItem = useDeleteInventoryItem();
   const updateReqStatus = useUpdateRequisitionStatus();
+  const analyzeReq = useAnalyzeRequisition();
+  const isEducationOfficer = hasRole("education_officer");
+  const canApproveL1 = isAdmin() || isEducationOfficer;
+  const canApproveL2 = isAdmin();
 
   const filteredItems = useMemo(() => items.filter((it: any) => {
     const matchSearch = it.name.toLowerCase().includes(search.toLowerCase()) || (it.sku ?? "").toLowerCase().includes(search.toLowerCase());
