@@ -93,21 +93,9 @@ export function InventoryItemDialog({ open, onOpenChange, item }: Props) {
               <Input value={form.sku ?? ""} onChange={e => setForm({ ...form, sku: e.target.value })} />
             </div>
           </div>
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <Label>Supplier</Label>
-              <Select value={form.supplier_id ?? "none"} onValueChange={v => setForm({ ...form, supplier_id: v === "none" ? null : v })}>
-                <SelectTrigger><SelectValue placeholder="None" /></SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="none">None</SelectItem>
-                  {suppliers.map(s => <SelectItem key={s.id} value={s.id}>{s.name}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <Label>Expiry Date</Label>
-              <Input type="date" value={form.expiry_date ?? ""} onChange={e => setForm({ ...form, expiry_date: e.target.value })} />
-            </div>
+          <div>
+            <Label>Expiry Date</Label>
+            <Input type="date" value={form.expiry_date ?? ""} onChange={e => setForm({ ...form, expiry_date: e.target.value })} />
           </div>
           <div>
             <Label>Description</Label>
