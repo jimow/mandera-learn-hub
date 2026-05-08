@@ -6,7 +6,7 @@ import { useUserCenterAssignment } from "./useUserCenterAssignment";
 
 export type InventoryCategory = "food" | "learning_material" | "book" | "furniture" | "equipment" | "stationery" | "other";
 export type StockTxType = "stock_in" | "stock_out" | "adjustment" | "distribution";
-export type RequisitionStatus = "pending" | "approved" | "rejected" | "fulfilled" | "cancelled";
+export type RequisitionStatus = "pending" | "approved" | "approved_l1" | "approved_l2" | "rejected" | "fulfilled" | "cancelled";
 
 function useScope() {
   const { hasRole, isAdmin } = useAuth();
