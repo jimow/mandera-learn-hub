@@ -50,7 +50,7 @@ import {
   Check,
 } from "lucide-react";
 import { format } from "date-fns";
-import { useApiKeys, useCreateApiKey, useRevokeApiKey, useDeleteApiKey } from "@/hooks/useApiKeys";
+import { useApiKeys, useCreateApiKey, useRevokeApiKey, useDeleteApiKey, useActivateApiKey } from "@/hooks/useApiKeys";
 import { useToast } from "@/hooks/use-toast";
 
 const API_BASE_URL = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1`;
@@ -497,6 +497,7 @@ export default function ApiDocumentation() {
   const { data: apiKeys, isLoading } = useApiKeys();
   const revokeApiKey = useRevokeApiKey();
   const deleteApiKey = useDeleteApiKey();
+  const activateApiKey = useActivateApiKey();
   const { toast } = useToast();
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
@@ -649,13 +650,21 @@ export default function ApiDocumentation() {
                         </TableCell>
                         <TableCell className="text-right">
                           <div className="flex justify-end gap-2">
-                            {key.is_active && (
+                            {key.is_active ? (
                               <Button
                                 size="sm"
                                 variant="outline"
                                 onClick={() => revokeApiKey.mutate(key.id)}
                               >
                                 Revoke
+                              </Button>
+                            ) : (
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => activateApiKey.mutate(key.id)}
+                              >
+                                Activate
                               </Button>
                             )}
                             <Button

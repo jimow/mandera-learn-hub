@@ -132,6 +132,28 @@ export function useRevokeApiKey() {
   });
 }
 
+export function useActivateApiKey() {
+  const queryClient = useQueryClient();
+  const { toast } = useToast();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase
+        .from("api_keys")
+        .update({ is_active: true })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["api-keys"] });
+      toast({ title: "API Key Activated", description: "The API key is now active." });
+    },
+    onError: (error) => {
+      toast({ title: "Error", description: error.message, variant: "destructive" });
+    },
+  });
+}
+
 export function useDeleteApiKey() {
   const queryClient = useQueryClient();
   const { toast } = useToast();
