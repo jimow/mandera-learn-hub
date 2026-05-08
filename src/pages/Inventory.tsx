@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import {
   useInventoryItems, useStockTransactions, useRequisitions,
   useMinistryDeliveries, useUtilizationLogs,
-  useDeleteInventoryItem, useUpdateRequisitionStatus,
+  useDeleteInventoryItem, useUpdateRequisitionStatus, useAnalyzeRequisition,
   type InventoryCategory,
 } from "@/hooks/useInventory";
 import { useAuth } from "@/contexts/AuthContext";
