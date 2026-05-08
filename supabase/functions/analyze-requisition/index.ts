@@ -23,13 +23,19 @@ Deno.serve(async (req) => {
 
     const admin = createClient(SUPABASE_URL, SERVICE_KEY);
 
-    // Fetch requisition + items + center
+    // Fetch requisition + items, then center separately (no FK relationship)
     const { data: req_, error: re } = await admin
       .from("requisitions")
-      .select("*, requisition_items(*), ecde_centers(name, capacity)")
+      .select("*, requisition_items(*)")
       .eq("id", requisition_id)
       .single();
     if (re) throw re;
+    const { data: center } = await admin
+      .from("ecde_centers")
+      .select("name, capacity")
+      .eq("id", req_.center_id)
+      .maybeSingle();
+    (req_ as any).ecde_centers = center;
 
     // Pull recent stats: number of students at center & last 6mo requisitions for context
     const { data: students } = await admin
