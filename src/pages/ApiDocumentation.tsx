@@ -497,6 +497,7 @@ export default function ApiDocumentation() {
   const { data: apiKeys, isLoading } = useApiKeys();
   const revokeApiKey = useRevokeApiKey();
   const deleteApiKey = useDeleteApiKey();
+  const activateApiKey = useActivateApiKey();
   const { toast } = useToast();
   const [newKey, setNewKey] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
