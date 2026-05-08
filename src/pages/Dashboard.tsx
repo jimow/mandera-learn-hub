@@ -20,6 +20,10 @@ export default function Dashboard() {
   const { data: centers } = useCenters();
   const { data: userCenterAssignment } = useUserCenterAssignment();
   const { hasRole, isAdmin } = useAuth();
+  const { data: inventoryItems = [] } = useInventoryItems();
+  const { data: deliveries = [] } = useMinistryDeliveries();
+  const { data: utilization = [] } = useUtilizationLogs();
+  const { data: requisitions = [] } = useRequisitions();
 
   const isCenterAdmin = hasRole("center_admin");
   const isTeacherRole = hasRole("teacher");
