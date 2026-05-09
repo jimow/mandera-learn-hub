@@ -65,6 +65,7 @@ export default function Students() {
   const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
   const { hasPermission } = useAuth();
+  const { mask } = usePrivacy();
 
   const canCreate = hasPermission("students", "create");
   const canUpdate = hasPermission("students", "update");
