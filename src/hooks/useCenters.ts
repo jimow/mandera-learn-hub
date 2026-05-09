@@ -213,10 +213,10 @@ export function usePendingCenters(level: "l1" | "l2") {
   return useQuery({
     queryKey: ["pending-centers", level],
     queryFn: async () => {
-      const { data, error } = await supabase
+      const { data, error } = await (supabase as any)
         .from("ecde_centers")
         .select("*")
-        .eq("approval_status" as any, status)
+        .eq("approval_status", status)
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
