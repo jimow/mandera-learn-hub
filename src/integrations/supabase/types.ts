@@ -1279,6 +1279,7 @@ export type Database = {
         | "teacher"
         | "education_officer"
         | "governor"
+        | "sub_county_education_officer"
       approval_status:
         | "pending"
         | "approved_subcounty"
@@ -1443,6 +1444,7 @@ export const Constants = {
         "teacher",
         "education_officer",
         "governor",
+        "sub_county_education_officer",
       ],
       approval_status: [
         "pending",
