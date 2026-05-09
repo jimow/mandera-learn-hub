@@ -69,7 +69,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Store & Inventory",
       href: "/inventory",
       icon: Package,
-      visible: isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("education_officer") || hasRole("governor"),
+      visible: isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor"),
     },
     { 
       name: "Administrative Areas", 
@@ -102,7 +102,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Reports",
       href: "/reports",
       icon: FileText,
-      visible: isAdmin() || isCenterAdmin || hasRole("education_officer") || hasRole("governor") || hasRole("teacher"),
+      visible: isAdmin() || isCenterAdmin || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor") || hasRole("teacher"),
     },
     { 
       name: "API Documentation", 
