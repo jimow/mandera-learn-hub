@@ -65,6 +65,7 @@ export function useAssignSubCounty() {
     },
     onSuccess: (_, vars) => {
       queryClient.invalidateQueries({ queryKey: ["user_subcounty_assignments", vars.userId] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Sub-county assigned");
     },
     onError: (e: Error) => toast.error(`Failed: ${e.message}`),
@@ -84,6 +85,7 @@ export function useRemoveSubCountyAssignment() {
     },
     onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["user_subcounty_assignments", data.userId] });
+      queryClient.invalidateQueries({ queryKey: ["users"] });
       toast.success("Sub-county removed");
     },
     onError: (e: Error) => toast.error(`Failed: ${e.message}`),
