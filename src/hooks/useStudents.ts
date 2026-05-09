@@ -4,6 +4,7 @@ import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserCenterAssignment } from "./useUserCenterAssignment";
+import { useMySubCounties } from "./useMySubCounties";
 
 type Student = Database["public"]["Tables"]["students"]["Row"];
 type StudentInsert = Database["public"]["Tables"]["students"]["Insert"];
@@ -16,24 +17,33 @@ interface StudentWithCenter extends Student {
 export function useStudents(centerId?: string) {
   const { hasRole } = useAuth();
   const { data: centerAssignment } = useUserCenterAssignment();
+  const { data: mySubCounties } = useMySubCounties();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const isSubCountyOfficer = hasRole("sub_county_education_officer");
   const userCenterId = centerAssignment?.center_id;
+  const subCountyNames = (mySubCounties || []).map((s) => s.name);
   
   // Use provided centerId, or user's assigned center for center-based roles
   const effectiveCenterId = centerId || (isCenterBased ? userCenterId : undefined);
 
   return useQuery({
-    queryKey: ["students", effectiveCenterId || "all"],
+    queryKey: [
+      "students",
+      effectiveCenterId || (isSubCountyOfficer ? `sc:${subCountyNames.join(",")}` : "all"),
+    ],
     queryFn: async () => {
       let query = supabase
         .from("students")
-        .select("*, ecde_centers(name, sub_county, ward)")
+        .select("*, ecde_centers!inner(name, sub_county, ward)")
         .order("created_at", { ascending: false });
       
       // Filter by center if applicable
       if (effectiveCenterId) {
         query = query.eq("center_id", effectiveCenterId);
+      } else if (isSubCountyOfficer && subCountyNames.length > 0) {
+        // Filter via joined center's sub_county for sub-county officer
+        query = query.in("ecde_centers.sub_county", subCountyNames);
       }
       
       const { data, error } = await query;
