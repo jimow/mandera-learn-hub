@@ -428,9 +428,9 @@ export default function StudentApprovals() {
   return (
     <div className="space-y-6">
       <div className="page-header">
-        <h1 className="page-title">Student Approvals</h1>
+        <h1 className="page-title">Approvals</h1>
         <p className="page-description">
-          Review and approve student registrations
+          Review and approve student registrations and ECDE centers
         </p>
       </div>
 
@@ -502,6 +502,18 @@ export default function StudentApprovals() {
             <TabsTrigger value="ministry" className="gap-2">
               <Building2 className="w-4 h-4" />
               Awaiting L2 ({awaitingMinistry?.length || 0})
+            </TabsTrigger>
+          )}
+          {canViewCenterL1 && (
+            <TabsTrigger value="centers_l1" className="gap-2">
+              <MapPin className="w-4 h-4" />
+              Centers L1 ({pendingCentersL1?.length || 0})
+            </TabsTrigger>
+          )}
+          {canViewCenterL2 && (
+            <TabsTrigger value="centers_l2" className="gap-2">
+              <MapPin className="w-4 h-4" />
+              Centers L2 ({pendingCentersL2?.length || 0})
             </TabsTrigger>
           )}
           <TabsTrigger value="approved" className="gap-2">
