@@ -132,7 +132,7 @@ export function StudentImportDialog({ open, onOpenChange }: StudentImportDialogP
         </DialogHeader>
 
         {step === "upload" && (
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Download Templates */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Download Template</h4>
