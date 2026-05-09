@@ -14,6 +14,7 @@ import {
   Code,
   Package,
   FileText,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
