@@ -257,7 +257,7 @@ export default function UsersManagement() {
                           onClick={() => handleManageSubCounties(userProfile)}
                         >
                           <MapPin className="w-3 h-3" />
-                          {userProfile.subCountyAssignments.length > 0
+                          {(userProfile.subCountyAssignments?.length || 0) > 0
                             ? `${userProfile.subCountyAssignments.length} Sub-Counties`
                             : "Assign Sub-County"}
                         </Button>
