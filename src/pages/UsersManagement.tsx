@@ -79,6 +79,7 @@ export default function UsersManagement() {
   const assignRole = useAssignRole();
   const removeRole = useRemoveRole();
   const { isSuperAdmin, hasPermission, user, isAdmin } = useAuth();
+  const { mask } = usePrivacy();
 
   const canManageRoles = isSuperAdmin();
   const canViewUsers = hasPermission("users", "read");
