@@ -566,6 +566,38 @@ export default function StudentApprovals() {
           </TabsContent>
         )}
 
+        {canViewCenterL1 && (
+          <TabsContent value="centers_l1">
+            <Card>
+              <CardHeader>
+                <CardTitle>Centers - Pending Level 1 Approval</CardTitle>
+                <CardDescription>
+                  ECDE centers awaiting first-level approval (Sub-County)
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CenterTable centers={pendingCentersL1} isLoading={loadingCentersL1} level="l1" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
+        {canViewCenterL2 && (
+          <TabsContent value="centers_l2">
+            <Card>
+              <CardHeader>
+                <CardTitle>Centers - Pending Level 2 Approval</CardTitle>
+                <CardDescription>
+                  ECDE centers approved at L1 awaiting final ministry approval
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="p-0">
+                <CenterTable centers={pendingCentersL2} isLoading={loadingCentersL2} level="l2" />
+              </CardContent>
+            </Card>
+          </TabsContent>
+        )}
+
         <TabsContent value="approved">
           <Card>
             <CardHeader>
