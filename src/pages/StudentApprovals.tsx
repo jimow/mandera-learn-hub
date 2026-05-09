@@ -1,9 +1,10 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { CheckCircle, XCircle, Eye, Search, Clock, Building2 } from "lucide-react";
+import { CheckCircle, XCircle, Eye, Search, Clock, Building2, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -29,6 +30,12 @@ import {
   useApproveByMinistry,
   useRejectStudent,
 } from "@/hooks/useStudentApproval";
+import {
+  usePendingCenters,
+  useApproveCenterL1,
+  useApproveCenterL2,
+  useRejectCenter,
+} from "@/hooks/useCenters";
 import { format } from "date-fns";
 import type { Database } from "@/integrations/supabase/types";
 
@@ -42,20 +49,38 @@ export default function StudentApprovals() {
   const [viewDialogOpen, setViewDialogOpen] = useState(false);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [selectedL1, setSelectedL1] = useState<Set<string>>(new Set());
+  const [selectedL2, setSelectedL2] = useState<Set<string>>(new Set());
+  const [bulkProcessing, setBulkProcessing] = useState(false);
 
   const { hasPermission } = useAuth();
-  
-  // Permission-based access control for approvals - Level 1 (Sub-county) and Level 2 (Ministry)
-  // can_read = view pending approvals, can_update = approve/reject at that level
-  const canViewLevel1 = hasPermission("approvals_level1", "read");
-  const canApproveLevel1 = hasPermission("approvals_level1", "update");
-  
-  const canViewLevel2 = hasPermission("approvals_level2", "read");
-  const canApproveLevel2 = hasPermission("approvals_level2", "update");
+
+  // Permission-based access (granular - students). Falls back to legacy keys.
+  const canViewLevel1 =
+    hasPermission("approvals_students_l1", "read") || hasPermission("approvals_level1", "read");
+  const canApproveLevel1 =
+    hasPermission("approvals_students_l1", "update") || hasPermission("approvals_level1", "update");
+  const canViewLevel2 =
+    hasPermission("approvals_students_l2", "read") || hasPermission("approvals_level2", "read");
+  const canApproveLevel2 =
+    hasPermission("approvals_students_l2", "update") || hasPermission("approvals_level2", "update");
+
+  // Center approval permissions
+  const canViewCenterL1 = hasPermission("approvals_centers_l1", "read");
+  const canApproveCenterL1 = hasPermission("approvals_centers_l1", "update");
+  const canViewCenterL2 = hasPermission("approvals_centers_l2", "read");
+  const canApproveCenterL2 = hasPermission("approvals_centers_l2", "update");
 
   const approveSubcounty = useApproveBySubcounty();
   const approveMinistry = useApproveByMinistry();
   const rejectStudent = useRejectStudent();
+
+  // Center approval hooks
+  const { data: pendingCentersL1, isLoading: loadingCentersL1 } = usePendingCenters("l1");
+  const { data: pendingCentersL2, isLoading: loadingCentersL2 } = usePendingCenters("l2");
+  const approveCenterL1 = useApproveCenterL1();
+  const approveCenterL2 = useApproveCenterL2();
+  const rejectCenter = useRejectCenter();
 
   // Fetch pending students (for sub-county approval)
   const { data: pendingStudents, isLoading: loadingPending } = useQuery({
