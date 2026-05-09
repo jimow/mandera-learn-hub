@@ -1268,6 +1268,18 @@ export type Database = {
         Returns: undefined
       }
       super_admin_exists: { Args: never; Returns: boolean }
+      user_in_center_subcounty: {
+        Args: { _center_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_in_subcounty_id: {
+        Args: { _sub_county_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_in_subcounty_name: {
+        Args: { _sub_county_name: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
