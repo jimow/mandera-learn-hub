@@ -16,8 +16,8 @@ interface StudentWithCenter extends Student {
 
 export function useStudents(centerId?: string) {
   const { hasRole } = useAuth();
-  const { data: centerAssignment } = useUserCenterAssignment();
-  const { data: mySubCounties } = useMySubCounties();
+  const { data: centerAssignment, isLoading: isLoadingAssignment } = useUserCenterAssignment();
+  const { data: mySubCounties, isLoading: isLoadingSubCounties } = useMySubCounties();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
   const isSubCountyOfficer = hasRole("sub_county_education_officer");
@@ -33,16 +33,23 @@ export function useStudents(centerId?: string) {
       effectiveCenterId || (isSubCountyOfficer ? `sc:${subCountyNames.join(",")}` : "all"),
     ],
     queryFn: async () => {
+      // Center-based without an assignment → no data
+      if (isCenterBased && !userCenterId) {
+        return [] as StudentWithCenter[];
+      }
+      // Sub-county officer with no sub-county assignments → no data (don't fall back to RLS)
+      if (isSubCountyOfficer && !isCenterBased && subCountyNames.length === 0) {
+        return [] as StudentWithCenter[];
+      }
+
       let query = supabase
         .from("students")
         .select("*, ecde_centers!inner(name, sub_county, ward)")
         .order("created_at", { ascending: false });
       
-      // Filter by center if applicable
       if (effectiveCenterId) {
         query = query.eq("center_id", effectiveCenterId);
       } else if (isSubCountyOfficer && subCountyNames.length > 0) {
-        // Filter via joined center's sub_county for sub-county officer
         query = query.in("ecde_centers.sub_county", subCountyNames);
       }
       
@@ -51,6 +58,9 @@ export function useStudents(centerId?: string) {
       if (error) throw error;
       return data as StudentWithCenter[];
     },
+    enabled:
+      (!isCenterBased || !isLoadingAssignment) &&
+      (!isSubCountyOfficer || !isLoadingSubCounties),
   });
 }
 
