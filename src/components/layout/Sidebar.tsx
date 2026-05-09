@@ -110,6 +110,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       icon: Code,
       visible: isSuperAdmin(),
     },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      visible: isSuperAdmin() || isAdmin(),
+    },
   ].filter(item => item.visible);
 
   return (
