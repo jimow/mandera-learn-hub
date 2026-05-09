@@ -136,7 +136,7 @@ export default function Teachers() {
                   <TableCell className="font-mono text-sm">{teacher.employee_number}</TableCell>
                   <TableCell className="font-medium">{teacher.full_name}</TableCell>
                   <TableCell className="capitalize">{teacher.gender}</TableCell>
-                  <TableCell>{teacher.phone || "-"}</TableCell>
+                  <TableCell>{mask(teacher.phone) || "-"}</TableCell>
                   <TableCell>{teacher.ecde_centers?.name || "Unassigned"}</TableCell>
                   <TableCell>{teacher.qualification || "-"}</TableCell>
                   <TableCell>
