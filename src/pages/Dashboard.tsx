@@ -205,11 +205,11 @@ export default function Dashboard() {
         <StudentStatistics students={studentsForStats} />
       )}
 
-      {/* Map - only show for admins */}
-      {!isCenterBased && <CentersMap />}
+      {/* Map - hide for scoped users (center/sub-county) */}
+      {!isScoped && <CentersMap />}
 
       {/* Charts & Activity - only show county-wide charts for admins */}
-      {!isCenterBased && (
+      {!isScoped && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CenterDistribution />
           <RecentActivity />
