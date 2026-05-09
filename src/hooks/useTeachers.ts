@@ -4,36 +4,49 @@ import type { Database } from "@/integrations/supabase/types";
 import { toast } from "sonner";
 import { useAuth } from "@/contexts/AuthContext";
 import { useUserCenterAssignment } from "./useUserCenterAssignment";
+import { useMySubCounties } from "./useMySubCounties";
 
 type Teacher = Database["public"]["Tables"]["teachers"]["Row"];
 type TeacherInsert = Database["public"]["Tables"]["teachers"]["Insert"];
 type TeacherUpdate = Database["public"]["Tables"]["teachers"]["Update"];
 
 interface TeacherWithCenter extends Teacher {
-  ecde_centers: { name: string } | null;
+  ecde_centers: { name: string; sub_county?: string } | null;
 }
 
 export function useTeachers(centerId?: string) {
   const { hasRole } = useAuth();
-  const { data: centerAssignment } = useUserCenterAssignment();
+  const { data: centerAssignment, isLoading: isLoadingAssignment } = useUserCenterAssignment();
+  const { data: mySubCounties, isLoading: isLoadingSubCounties } = useMySubCounties();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const isSubCountyOfficer = hasRole("sub_county_education_officer");
   const userCenterId = centerAssignment?.center_id;
+  const subCountyNames = (mySubCounties || []).map((s) => s.name);
   
-  // Use provided centerId, or user's assigned center for center-based roles
   const effectiveCenterId = centerId || (isCenterBased ? userCenterId : undefined);
 
   return useQuery({
-    queryKey: ["teachers", effectiveCenterId || "all"],
+    queryKey: [
+      "teachers",
+      effectiveCenterId || (isSubCountyOfficer ? `sc:${subCountyNames.join(",")}` : "all"),
+    ],
     queryFn: async () => {
+      if (isCenterBased && !userCenterId) return [] as TeacherWithCenter[];
+      if (isSubCountyOfficer && !isCenterBased && subCountyNames.length === 0) {
+        return [] as TeacherWithCenter[];
+      }
+
+      const useInnerJoin = isSubCountyOfficer && !effectiveCenterId && subCountyNames.length > 0;
       let query = supabase
         .from("teachers")
-        .select("*, ecde_centers(name)")
+        .select(useInnerJoin ? "*, ecde_centers!inner(name, sub_county)" : "*, ecde_centers(name)")
         .order("created_at", { ascending: false });
       
-      // Filter by center if applicable
       if (effectiveCenterId) {
         query = query.eq("center_id", effectiveCenterId);
+      } else if (useInnerJoin) {
+        query = query.in("ecde_centers.sub_county", subCountyNames);
       }
       
       const { data, error } = await query;
@@ -41,6 +54,9 @@ export function useTeachers(centerId?: string) {
       if (error) throw error;
       return data as TeacherWithCenter[];
     },
+    enabled:
+      (!isCenterBased || !isLoadingAssignment) &&
+      (!isSubCountyOfficer || !isLoadingSubCounties),
   });
 }
 
