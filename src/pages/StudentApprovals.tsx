@@ -177,6 +177,37 @@ export default function StudentApprovals() {
     }
   };
 
+  // Bulk approval
+  const handleBulkApprove = async (level: "l1" | "l2") => {
+    const ids = Array.from(level === "l1" ? selectedL1 : selectedL2);
+    if (ids.length === 0) return;
+    setBulkProcessing(true);
+    try {
+      const fn = level === "l1" ? approveSubcounty : approveMinistry;
+      await Promise.all(ids.map((id) => fn.mutateAsync(id)));
+      if (level === "l1") setSelectedL1(new Set());
+      else setSelectedL2(new Set());
+    } finally {
+      setBulkProcessing(false);
+    }
+  };
+
+  const toggleSelect = (level: "l1" | "l2", id: string) => {
+    const setter = level === "l1" ? setSelectedL1 : setSelectedL2;
+    const current = level === "l1" ? selectedL1 : selectedL2;
+    const next = new Set(current);
+    if (next.has(id)) next.delete(id);
+    else next.add(id);
+    setter(next);
+  };
+
+  const toggleSelectAll = (level: "l1" | "l2", students: Student[]) => {
+    const current = level === "l1" ? selectedL1 : selectedL2;
+    const setter = level === "l1" ? setSelectedL1 : setSelectedL2;
+    if (current.size === students.length) setter(new Set());
+    else setter(new Set(students.map((s) => s.id)));
+  };
+
   const StudentTable = ({
     students,
     isLoading,
@@ -189,109 +220,210 @@ export default function StudentApprovals() {
     showApproveLevel1?: boolean;
     showApproveLevel2?: boolean;
     showRejection?: boolean;
-  }) => (
-    <div className="data-table">
-      {isLoading ? (
-        <div className="p-8 text-center text-muted-foreground">Loading...</div>
-      ) : filterStudents(students).length === 0 ? (
-        <div className="p-8 text-center text-muted-foreground">No students found</div>
-      ) : (
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead>Admission No.</TableHead>
-              <TableHead>Student Name</TableHead>
-              <TableHead>Center</TableHead>
-              <TableHead>Sub-County</TableHead>
-              <TableHead>Date of Birth</TableHead>
-              <TableHead>Parent</TableHead>
-              {showRejection && <TableHead>Rejection Reason</TableHead>}
-              <TableHead className="text-right">Actions</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {filterStudents(students).map((student) => (
-              <TableRow key={student.id}>
-                <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
-                <TableCell className="font-medium">{student.full_name}</TableCell>
-                <TableCell>{student.ecde_centers?.name || "Unassigned"}</TableCell>
-                <TableCell>{student.ecde_centers?.sub_county || "-"}</TableCell>
-                <TableCell>{format(new Date(student.date_of_birth), "PP")}</TableCell>
-                <TableCell>
-                  <div>
-                    <p className="text-sm">{student.parent_name}</p>
-                    <p className="text-xs text-muted-foreground">{student.parent_phone}</p>
-                  </div>
-                </TableCell>
-                {showRejection && (
-                  <TableCell className="max-w-[200px]">
-                    <p className="text-sm text-destructive truncate" title={student.rejection_reason || ""}>
-                      {student.rejection_reason || "-"}
-                    </p>
-                  </TableCell>
+  }) => {
+    const filtered = filterStudents(students);
+    const level: "l1" | "l2" | null = showApproveLevel1 ? "l1" : showApproveLevel2 ? "l2" : null;
+    const selected = level === "l1" ? selectedL1 : level === "l2" ? selectedL2 : new Set<string>();
+    const canBulkApprove =
+      (level === "l1" && canApproveLevel1) || (level === "l2" && canApproveLevel2);
+
+    return (
+      <div className="data-table">
+        {level && canBulkApprove && filtered.length > 0 && (
+          <div className="flex items-center justify-between p-3 border-b bg-muted/30">
+            <p className="text-sm text-muted-foreground">
+              {selected.size} of {filtered.length} selected
+            </p>
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                disabled={selected.size === 0 || bulkProcessing}
+                onClick={() => handleBulkApprove(level)}
+                className="gap-1"
+              >
+                <CheckCircle className="w-4 h-4" />
+                Bulk Approve ({selected.size})
+              </Button>
+            </div>
+          </div>
+        )}
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">No students found</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                {level && canBulkApprove && (
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={selected.size > 0 && selected.size === filtered.length}
+                      onCheckedChange={() => toggleSelectAll(level, filtered)}
+                    />
+                  </TableHead>
                 )}
-                <TableCell>
-                  <div className="flex items-center justify-end gap-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleView(student)}
-                    >
-                      <Eye className="w-4 h-4" />
-                    </Button>
-                    {showApproveLevel1 && canApproveLevel1 && (
-                      <>
-                        <Button
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleApproveSubcounty(student.id)}
-                          disabled={approveSubcounty.isPending}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Approve
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleReject(student)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                    {showApproveLevel2 && canApproveLevel2 && (
-                      <>
-                        <Button
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleApproveMinistry(student.id)}
-                          disabled={approveMinistry.isPending}
-                        >
-                          <CheckCircle className="w-4 h-4" />
-                          Final Approve
-                        </Button>
-                        <Button
-                          variant="destructive"
-                          size="sm"
-                          className="gap-1"
-                          onClick={() => handleReject(student)}
-                        >
-                          <XCircle className="w-4 h-4" />
-                          Reject
-                        </Button>
-                      </>
-                    )}
-                  </div>
-                </TableCell>
+                <TableHead>Admission No.</TableHead>
+                <TableHead>Student Name</TableHead>
+                <TableHead>Center</TableHead>
+                <TableHead>Sub-County</TableHead>
+                <TableHead>Date of Birth</TableHead>
+                <TableHead>Parent</TableHead>
+                {showRejection && <TableHead>Rejection Reason</TableHead>}
+                <TableHead className="text-right">Actions</TableHead>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      )}
-    </div>
-  );
+            </TableHeader>
+            <TableBody>
+              {filtered.map((student) => (
+                <TableRow key={student.id}>
+                  {level && canBulkApprove && (
+                    <TableCell>
+                      <Checkbox
+                        checked={selected.has(student.id)}
+                        onCheckedChange={() => toggleSelect(level, student.id)}
+                      />
+                    </TableCell>
+                  )}
+                  <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
+                  <TableCell className="font-medium">{student.full_name}</TableCell>
+                  <TableCell>{student.ecde_centers?.name || "Unassigned"}</TableCell>
+                  <TableCell>{student.ecde_centers?.sub_county || "-"}</TableCell>
+                  <TableCell>{format(new Date(student.date_of_birth), "PP")}</TableCell>
+                  <TableCell>
+                    <div>
+                      <p className="text-sm">{student.parent_name}</p>
+                      <p className="text-xs text-muted-foreground">{student.parent_phone}</p>
+                    </div>
+                  </TableCell>
+                  {showRejection && (
+                    <TableCell className="max-w-[200px]">
+                      <p className="text-sm text-destructive truncate" title={student.rejection_reason || ""}>
+                        {student.rejection_reason || "-"}
+                      </p>
+                    </TableCell>
+                  )}
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-2">
+                      <Button variant="outline" size="sm" onClick={() => handleView(student)}>
+                        <Eye className="w-4 h-4" />
+                      </Button>
+                      {showApproveLevel1 && canApproveLevel1 && (
+                        <>
+                          <Button size="sm" className="gap-1" onClick={() => handleApproveSubcounty(student.id)} disabled={approveSubcounty.isPending}>
+                            <CheckCircle className="w-4 h-4" /> Approve
+                          </Button>
+                          <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleReject(student)}>
+                            <XCircle className="w-4 h-4" /> Reject
+                          </Button>
+                        </>
+                      )}
+                      {showApproveLevel2 && canApproveLevel2 && (
+                        <>
+                          <Button size="sm" className="gap-1" onClick={() => handleApproveMinistry(student.id)} disabled={approveMinistry.isPending}>
+                            <CheckCircle className="w-4 h-4" /> Final Approve
+                          </Button>
+                          <Button variant="destructive" size="sm" className="gap-1" onClick={() => handleReject(student)}>
+                            <XCircle className="w-4 h-4" /> Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    );
+  };
+
+  // Centers approval table
+  const CenterTable = ({
+    centers,
+    isLoading,
+    level,
+  }: {
+    centers: any[] | undefined;
+    isLoading: boolean;
+    level: "l1" | "l2";
+  }) => {
+    const filtered = (centers || []).filter((c) =>
+      c.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      c.code.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+    const canApprove = level === "l1" ? canApproveCenterL1 : canApproveCenterL2;
+    return (
+      <div className="data-table">
+        {isLoading ? (
+          <div className="p-8 text-center text-muted-foreground">Loading...</div>
+        ) : filtered.length === 0 ? (
+          <div className="p-8 text-center text-muted-foreground">No centers awaiting approval</div>
+        ) : (
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>Code</TableHead>
+                <TableHead>Center Name</TableHead>
+                <TableHead>Location</TableHead>
+                <TableHead>Sub-County / Ward</TableHead>
+                <TableHead>Capacity</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {filtered.map((center) => (
+                <TableRow key={center.id}>
+                  <TableCell className="font-mono text-sm">{center.code}</TableCell>
+                  <TableCell className="font-medium">{center.name}</TableCell>
+                  <TableCell className="text-sm">
+                    <div className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3 text-muted-foreground" />
+                      {center.location}
+                    </div>
+                  </TableCell>
+                  <TableCell className="text-sm">{center.sub_county} / {center.ward}</TableCell>
+                  <TableCell>{center.capacity || 50}</TableCell>
+                  <TableCell>
+                    <div className="flex items-center justify-end gap-2">
+                      {canApprove && (
+                        <>
+                          <Button
+                            size="sm"
+                            className="gap-1"
+                            onClick={() =>
+                              level === "l1"
+                                ? approveCenterL1.mutate(center.id)
+                                : approveCenterL2.mutate(center.id)
+                            }
+                            disabled={approveCenterL1.isPending || approveCenterL2.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4" />
+                            {level === "l1" ? "Approve" : "Final Approve"}
+                          </Button>
+                          <Button
+                            variant="destructive"
+                            size="sm"
+                            className="gap-1"
+                            onClick={() => {
+                              const reason = window.prompt("Reason for rejection:");
+                              if (reason) rejectCenter.mutate({ centerId: center.id, reason });
+                            }}
+                          >
+                            <XCircle className="w-4 h-4" /> Reject
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-6">
