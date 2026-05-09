@@ -371,6 +371,12 @@ export default function UsersManagement() {
         onOpenChange={setCenterDialogOpen}
         user={userForCenterAssignment}
       />
+
+      <SubCountyAssignmentDialog
+        open={subCountyDialogOpen}
+        onOpenChange={setSubCountyDialogOpen}
+        user={userForSubCountyAssignment}
+      />
     </div>
   );
 }
