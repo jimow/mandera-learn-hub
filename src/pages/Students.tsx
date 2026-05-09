@@ -29,6 +29,7 @@ import { TablePagination } from "@/components/shared/TablePagination";
 import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import type { Database } from "@/integrations/supabase/types";
 
 type Student = Database["public"]["Tables"]["students"]["Row"];
