@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X, School } from "lucide-react";
+import { Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X, School, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePrivacy } from "@/hooks/usePrivacy";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { CenterAssignmentDialog } from "@/components/users/CenterAssignmentDialog";
+import { SubCountyAssignmentDialog } from "@/components/users/SubCountyAssignmentDialog";
 import type { Database } from "@/integrations/supabase/types";
 import { Constants } from "@/integrations/supabase/types";
 
@@ -74,6 +75,8 @@ export default function UsersManagement() {
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [roleToRemove, setRoleToRemove] = useState<{ userId: string; role: AppRole; userName: string } | null>(null);
   const [userForCenterAssignment, setUserForCenterAssignment] = useState<{ userId: string; fullName: string } | null>(null);
+  const [subCountyDialogOpen, setSubCountyDialogOpen] = useState(false);
+  const [userForSubCountyAssignment, setUserForSubCountyAssignment] = useState<{ userId: string; fullName: string } | null>(null);
 
   const { data: users, isLoading } = useUsers();
   const assignRole = useAssignRole();
@@ -106,6 +109,14 @@ export default function UsersManagement() {
       fullName: userProfile.full_name,
     });
     setCenterDialogOpen(true);
+  };
+
+  const handleManageSubCounties = (userProfile: typeof filteredUsers[0]) => {
+    setUserForSubCountyAssignment({
+      userId: userProfile.user_id,
+      fullName: userProfile.full_name,
+    });
+    setSubCountyDialogOpen(true);
   };
 
   const handleAssignRole = async () => {
@@ -267,6 +278,11 @@ export default function UsersManagement() {
                             <School className="w-4 h-4" /> Assign Centers
                           </DropdownMenuItem>
                         )}
+                        {canManageCenters && (
+                          <DropdownMenuItem className="gap-2" onClick={() => handleManageSubCounties(userProfile)}>
+                            <MapPin className="w-4 h-4" /> Assign Sub-Counties
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
@@ -354,6 +370,12 @@ export default function UsersManagement() {
         open={centerDialogOpen}
         onOpenChange={setCenterDialogOpen}
         user={userForCenterAssignment}
+      />
+
+      <SubCountyAssignmentDialog
+        open={subCountyDialogOpen}
+        onOpenChange={setSubCountyDialogOpen}
+        user={userForSubCountyAssignment}
       />
     </div>
   );
