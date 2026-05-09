@@ -37,6 +37,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { usePrivacy } from "@/hooks/usePrivacy";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { CenterAssignmentDialog } from "@/components/users/CenterAssignmentDialog";
+import { SubCountyAssignmentDialog } from "@/components/users/SubCountyAssignmentDialog";
 import type { Database } from "@/integrations/supabase/types";
 import { Constants } from "@/integrations/supabase/types";
 
