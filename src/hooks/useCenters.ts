@@ -18,15 +18,25 @@ interface CenterWithCounts extends Center {
 export function useCenters() {
   const { hasRole } = useAuth();
   const { data: centerAssignment, isLoading: isLoadingAssignment } = useUserCenterAssignment();
+  const { data: mySubCounties, isLoading: isLoadingSubCounties } = useMySubCounties();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
+  const isSubCountyOfficer = hasRole("sub_county_education_officer");
   const userCenterId = centerAssignment?.center_id;
+  const subCountyNames = (mySubCounties || []).map((s) => s.name);
 
   return useQuery({
-    queryKey: ["centers", isCenterBased ? userCenterId : "all"],
+    queryKey: [
+      "centers",
+      isCenterBased ? `center:${userCenterId}` : isSubCountyOfficer ? `sc:${subCountyNames.join(",")}` : "all",
+    ],
     queryFn: async () => {
       // For center-based roles without an assignment, return empty array
       if (isCenterBased && !userCenterId) {
+        return [] as CenterWithCounts[];
+      }
+      // For sub-county officer without assignments, return empty
+      if (isSubCountyOfficer && !isCenterBased && subCountyNames.length === 0) {
         return [] as CenterWithCounts[];
       }
       
@@ -38,6 +48,9 @@ export function useCenters() {
       // Filter to user's assigned center for center-based roles
       if (isCenterBased && userCenterId) {
         query = query.eq("id", userCenterId);
+      } else if (isSubCountyOfficer && subCountyNames.length > 0) {
+        // Filter to assigned sub-counties for sub-county officer
+        query = query.in("sub_county", subCountyNames);
       }
       
       const { data, error } = await query;
@@ -68,8 +81,10 @@ export function useCenters() {
       
       return centersWithCounts as CenterWithCounts[];
     },
-    // Wait for center assignment to load before running query for center-based users
-    enabled: !isCenterBased || !isLoadingAssignment,
+    // Wait for relevant assignments to load
+    enabled:
+      (!isCenterBased || !isLoadingAssignment) &&
+      (!isSubCountyOfficer || !isLoadingSubCounties),
   });
 }
 
