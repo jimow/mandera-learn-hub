@@ -24,6 +24,7 @@ import { TablePagination } from "@/components/shared/TablePagination";
 import { useTeachers, useDeleteTeacher } from "@/hooks/useTeachers";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import type { Database } from "@/integrations/supabase/types";
 
 type Teacher = Database["public"]["Tables"]["teachers"]["Row"];
@@ -40,6 +41,7 @@ export default function Teachers() {
   const { data: teachers, isLoading } = useTeachers();
   const deleteTeacher = useDeleteTeacher();
   const { hasPermission } = useAuth();
+  const { mask } = usePrivacy();
 
   const canCreate = hasPermission("teachers", "create");
   const canUpdate = hasPermission("teachers", "update");
@@ -134,7 +136,7 @@ export default function Teachers() {
                   <TableCell className="font-mono text-sm">{teacher.employee_number}</TableCell>
                   <TableCell className="font-medium">{teacher.full_name}</TableCell>
                   <TableCell className="capitalize">{teacher.gender}</TableCell>
-                  <TableCell>{teacher.phone || "-"}</TableCell>
+                  <TableCell>{mask(teacher.phone) || "-"}</TableCell>
                   <TableCell>{teacher.ecde_centers?.name || "Unassigned"}</TableCell>
                   <TableCell>{teacher.qualification || "-"}</TableCell>
                   <TableCell>

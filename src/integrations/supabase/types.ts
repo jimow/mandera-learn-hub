@@ -56,6 +56,45 @@ export type Database = {
         }
         Relationships: []
       }
+      audit_logs: {
+        Row: {
+          action: string
+          created_at: string
+          id: string
+          ip_address: string | null
+          metadata: Json | null
+          resource_id: string | null
+          resource_type: string
+          user_agent: string | null
+          user_email: string | null
+          user_id: string | null
+        }
+        Insert: {
+          action: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          action?: string
+          created_at?: string
+          id?: string
+          ip_address?: string | null
+          metadata?: Json | null
+          resource_id?: string | null
+          resource_type?: string
+          user_agent?: string | null
+          user_email?: string | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       counties: {
         Row: {
           code: string
@@ -301,6 +340,39 @@ export type Database = {
           reference_number?: string | null
           unit?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      notification_preferences: {
+        Row: {
+          created_at: string
+          email_enabled: boolean | null
+          events: Json | null
+          id: string
+          inapp_enabled: boolean | null
+          sms_enabled: boolean | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          email_enabled?: boolean | null
+          events?: Json | null
+          id?: string
+          inapp_enabled?: boolean | null
+          sms_enabled?: boolean | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          email_enabled?: boolean | null
+          events?: Json | null
+          id?: string
+          inapp_enabled?: boolean | null
+          sms_enabled?: boolean | null
+          updated_at?: string
+          user_id?: string
         }
         Relationships: []
       }
@@ -644,13 +716,19 @@ export type Database = {
           address: string | null
           admission_date: string | null
           admission_number: string
+          anonymized: boolean | null
           approval_status: Database["public"]["Enums"]["approval_status"] | null
           approved_by_ministry: string | null
           approved_by_subcounty: string | null
           center_id: string | null
           class_level: Database["public"]["Enums"]["class_level"] | null
+          consent_date: string | null
+          consent_given: boolean | null
+          consent_signed_by: string | null
           created_at: string
           created_by: string | null
+          data_deletion_requested_at: string | null
+          data_export_requested_at: string | null
           date_of_birth: string
           full_name: string
           gender: Database["public"]["Enums"]["gender"]
@@ -661,6 +739,7 @@ export type Database = {
           parent_name: string
           parent_phone: string
           rejection_reason: string | null
+          retention_until: string | null
           special_needs: string | null
           subcounty_approval_date: string | null
           updated_at: string
@@ -669,6 +748,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           admission_number: string
+          anonymized?: boolean | null
           approval_status?:
             | Database["public"]["Enums"]["approval_status"]
             | null
@@ -676,8 +756,13 @@ export type Database = {
           approved_by_subcounty?: string | null
           center_id?: string | null
           class_level?: Database["public"]["Enums"]["class_level"] | null
+          consent_date?: string | null
+          consent_given?: boolean | null
+          consent_signed_by?: string | null
           created_at?: string
           created_by?: string | null
+          data_deletion_requested_at?: string | null
+          data_export_requested_at?: string | null
           date_of_birth: string
           full_name: string
           gender: Database["public"]["Enums"]["gender"]
@@ -688,6 +773,7 @@ export type Database = {
           parent_name: string
           parent_phone: string
           rejection_reason?: string | null
+          retention_until?: string | null
           special_needs?: string | null
           subcounty_approval_date?: string | null
           updated_at?: string
@@ -696,6 +782,7 @@ export type Database = {
           address?: string | null
           admission_date?: string | null
           admission_number?: string
+          anonymized?: boolean | null
           approval_status?:
             | Database["public"]["Enums"]["approval_status"]
             | null
@@ -703,8 +790,13 @@ export type Database = {
           approved_by_subcounty?: string | null
           center_id?: string | null
           class_level?: Database["public"]["Enums"]["class_level"] | null
+          consent_date?: string | null
+          consent_given?: boolean | null
+          consent_signed_by?: string | null
           created_at?: string
           created_by?: string | null
+          data_deletion_requested_at?: string | null
+          data_export_requested_at?: string | null
           date_of_birth?: string
           full_name?: string
           gender?: Database["public"]["Enums"]["gender"]
@@ -715,6 +807,7 @@ export type Database = {
           parent_name?: string
           parent_phone?: string
           rejection_reason?: string | null
+          retention_until?: string | null
           special_needs?: string | null
           subcounty_approval_date?: string | null
           updated_at?: string
@@ -763,6 +856,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      system_settings: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          key: string
+          updated_at: string
+          updated_by: string | null
+          value: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          key?: string
+          updated_at?: string
+          updated_by?: string | null
+          value?: Json
+        }
+        Relationships: []
       }
       teacher_transfers: {
         Row: {
@@ -830,7 +956,10 @@ export type Database = {
       }
       teachers: {
         Row: {
+          anonymized: boolean | null
           center_id: string | null
+          consent_date: string | null
+          consent_given: boolean | null
           created_at: string
           date_of_birth: string | null
           email: string | null
@@ -843,11 +972,15 @@ export type Database = {
           national_id: string
           phone: string | null
           qualification: string | null
+          retention_until: string | null
           specialization: string | null
           updated_at: string
         }
         Insert: {
+          anonymized?: boolean | null
           center_id?: string | null
+          consent_date?: string | null
+          consent_given?: boolean | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -860,11 +993,15 @@ export type Database = {
           national_id: string
           phone?: string | null
           qualification?: string | null
+          retention_until?: string | null
           specialization?: string | null
           updated_at?: string
         }
         Update: {
+          anonymized?: boolean | null
           center_id?: string | null
+          consent_date?: string | null
+          consent_given?: boolean | null
           created_at?: string
           date_of_birth?: string | null
           email?: string | null
@@ -877,6 +1014,7 @@ export type Database = {
           national_id?: string
           phone?: string | null
           qualification?: string | null
+          retention_until?: string | null
           specialization?: string | null
           updated_at?: string
         }
@@ -1066,6 +1204,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_pii: { Args: { _user_id: string }; Returns: boolean }
       get_approval_notification_users: {
         Args: { approval_level: string }
         Returns: {
@@ -1074,6 +1213,7 @@ export type Database = {
           user_id: string
         }[]
       }
+      get_setting: { Args: { _category: string; _key: string }; Returns: Json }
       get_user_center_id: { Args: { _user_id: string }; Returns: string }
       get_user_permissions: {
         Args: { _user_id: string }
@@ -1118,6 +1258,15 @@ export type Database = {
       }
       is_admin: { Args: { _user_id: string }; Returns: boolean }
       is_subcounty_manager: { Args: { _user_id: string }; Returns: boolean }
+      log_audit_event: {
+        Args: {
+          _action: string
+          _metadata?: Json
+          _resource_id: string
+          _resource_type: string
+        }
+        Returns: undefined
+      }
       super_admin_exists: { Args: never; Returns: boolean }
     }
     Enums: {

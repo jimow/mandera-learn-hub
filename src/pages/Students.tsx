@@ -29,6 +29,7 @@ import { TablePagination } from "@/components/shared/TablePagination";
 import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import type { Database } from "@/integrations/supabase/types";
 
 type Student = Database["public"]["Tables"]["students"]["Row"];
@@ -64,6 +65,7 @@ export default function Students() {
   const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
   const { hasPermission } = useAuth();
+  const { mask } = usePrivacy();
 
   const canCreate = hasPermission("students", "create");
   const canUpdate = hasPermission("students", "update");
@@ -295,14 +297,14 @@ export default function Students() {
             <TableBody>
               {paginatedData.map((student) => (
                 <TableRow key={student.id}>
-                  <TableCell className="font-mono text-sm">{student.admission_number}</TableCell>
+                  <TableCell className="font-mono text-sm">{mask(student.admission_number)}</TableCell>
                   <TableCell className="font-medium">{student.full_name}</TableCell>
                   <TableCell className="capitalize">{student.gender}</TableCell>
                   <TableCell>{(student as any).ecde_centers?.name || "Unassigned"}</TableCell>
                   <TableCell>
                     <div>
                       <p className="text-sm">{student.parent_name}</p>
-                      <p className="text-xs text-muted-foreground">{student.parent_phone}</p>
+                      <p className="text-xs text-muted-foreground">{mask(student.parent_phone)}</p>
                     </div>
                   </TableCell>
                   <TableCell>

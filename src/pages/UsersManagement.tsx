@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useUsers, useAssignRole, useRemoveRole, useUpdateProfile } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { CenterAssignmentDialog } from "@/components/users/CenterAssignmentDialog";
 import type { Database } from "@/integrations/supabase/types";
@@ -78,6 +79,7 @@ export default function UsersManagement() {
   const assignRole = useAssignRole();
   const removeRole = useRemoveRole();
   const { isSuperAdmin, hasPermission, user, isAdmin } = useAuth();
+  const { mask } = usePrivacy();
 
   const canManageRoles = isSuperAdmin();
   const canViewUsers = hasPermission("users", "read");
@@ -222,7 +224,7 @@ export default function UsersManagement() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{userProfile.email}</TableCell>
+                  <TableCell className="text-muted-foreground">{mask(userProfile.email)}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {userProfile.roles.length > 0 ? (

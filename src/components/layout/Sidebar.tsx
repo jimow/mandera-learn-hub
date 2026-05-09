@@ -14,6 +14,7 @@ import {
   Code,
   Package,
   FileText,
+  Settings,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -108,6 +109,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/api-docs", 
       icon: Code,
       visible: isSuperAdmin(),
+    },
+    {
+      name: "Settings",
+      href: "/settings",
+      icon: Settings,
+      visible: isSuperAdmin() || isAdmin(),
     },
   ].filter(item => item.visible);
 
