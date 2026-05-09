@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useCenters } from "@/hooks/useCenters";
 import {
   Table,
   TableBody,
