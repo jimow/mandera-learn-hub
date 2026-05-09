@@ -49,6 +49,11 @@ const getApprovalStatusBadge = (status: string | null) => {
 
 export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterGender, setFilterGender] = useState<string>("all");
+  const [filterClassLevel, setFilterClassLevel] = useState<string>("all");
+  const [filterApproval, setFilterApproval] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCenter, setFilterCenter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -56,6 +61,7 @@ export default function Students() {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   
   const { data: students, isLoading } = useStudents();
+  const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
   const { hasPermission } = useAuth();
 
@@ -63,10 +69,43 @@ export default function Students() {
   const canUpdate = hasPermission("students", "update");
   const canDelete = hasPermission("students", "delete");
 
-  const filteredStudents = students?.filter((student) =>
-    student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.admission_number.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const activeFilterCount =
+    (filterGender !== "all" ? 1 : 0) +
+    (filterClassLevel !== "all" ? 1 : 0) +
+    (filterApproval !== "all" ? 1 : 0) +
+    (filterStatus !== "all" ? 1 : 0) +
+    (filterCenter !== "all" ? 1 : 0);
+
+  const clearFilters = () => {
+    setFilterGender("all");
+    setFilterClassLevel("all");
+    setFilterApproval("all");
+    setFilterStatus("all");
+    setFilterCenter("all");
+  };
+
+  const filteredStudents = students?.filter((student) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      student.full_name.toLowerCase().includes(q) ||
+      student.admission_number.toLowerCase().includes(q) ||
+      student.parent_name?.toLowerCase().includes(q) ||
+      student.parent_phone?.toLowerCase().includes(q);
+    const matchesGender = filterGender === "all" || student.gender === filterGender;
+    const matchesClass = filterClassLevel === "all" || (student as any).class_level === filterClassLevel;
+    const matchesApproval =
+      filterApproval === "all" || ((student as any).approval_status || "pending") === filterApproval;
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" ? student.is_active : !student.is_active);
+    const matchesCenter =
+      filterCenter === "all" ||
+      (filterCenter === "unassigned"
+        ? !student.center_id
+        : student.center_id === filterCenter);
+    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter;
+  }) || [];
 
   const {
     paginatedData,
