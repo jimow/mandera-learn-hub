@@ -115,6 +115,11 @@ export type Database = {
       }
       ecde_centers: {
         Row: {
+          approval_status: string
+          approved_l1_at: string | null
+          approved_l1_by: string | null
+          approved_l2_at: string | null
+          approved_l2_by: string | null
           capacity: number | null
           code: string
           contact_email: string | null
@@ -127,12 +132,19 @@ export type Database = {
           location: string
           longitude: number | null
           name: string
+          rejection_reason: string | null
           sub_county: string
+          submitted_by: string | null
           updated_at: string
           ward: string
           ward_id: string | null
         }
         Insert: {
+          approval_status?: string
+          approved_l1_at?: string | null
+          approved_l1_by?: string | null
+          approved_l2_at?: string | null
+          approved_l2_by?: string | null
           capacity?: number | null
           code: string
           contact_email?: string | null
@@ -145,12 +157,19 @@ export type Database = {
           location: string
           longitude?: number | null
           name: string
+          rejection_reason?: string | null
           sub_county: string
+          submitted_by?: string | null
           updated_at?: string
           ward: string
           ward_id?: string | null
         }
         Update: {
+          approval_status?: string
+          approved_l1_at?: string | null
+          approved_l1_by?: string | null
+          approved_l2_at?: string | null
+          approved_l2_by?: string | null
           capacity?: number | null
           code?: string
           contact_email?: string | null
@@ -163,7 +182,9 @@ export type Database = {
           location?: string
           longitude?: number | null
           name?: string
+          rejection_reason?: string | null
           sub_county?: string
+          submitted_by?: string | null
           updated_at?: string
           ward?: string
           ward_id?: string | null
