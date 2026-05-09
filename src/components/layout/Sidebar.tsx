@@ -102,7 +102,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Reports",
       href: "/reports",
       icon: FileText,
-      visible: isAdmin() || isCenterAdmin || hasRole("education_officer") || hasRole("governor") || hasRole("teacher"),
+      visible: isAdmin() || isCenterAdmin || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor") || hasRole("teacher"),
     },
     { 
       name: "API Documentation", 
