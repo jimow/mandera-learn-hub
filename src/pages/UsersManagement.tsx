@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X, School } from "lucide-react";
+import { Search, Filter, MoreVertical, Eye, Edit, Trash2, Shield, UserPlus, X, School, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
