@@ -278,6 +278,11 @@ export default function UsersManagement() {
                             <School className="w-4 h-4" /> Assign Centers
                           </DropdownMenuItem>
                         )}
+                        {canManageCenters && (
+                          <DropdownMenuItem className="gap-2" onClick={() => handleManageSubCounties(userProfile)}>
+                            <MapPin className="w-4 h-4" /> Assign Sub-Counties
+                          </DropdownMenuItem>
+                        )}
                       </DropdownMenuContent>
                     </DropdownMenu>
                   </TableCell>
