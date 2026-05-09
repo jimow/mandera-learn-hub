@@ -27,7 +27,10 @@ export default function Dashboard() {
 
   const isCenterAdmin = hasRole("center_admin");
   const isTeacherRole = hasRole("teacher");
+  const isSubCountyOfficer = hasRole("sub_county_education_officer");
   const isCenterBased = (isCenterAdmin || isTeacherRole) && userCenterAssignment?.center_id;
+  // Scoped = data is already filtered (by center or by sub-county). Hide county-wide visuals.
+  const isScoped = isCenterBased || isSubCountyOfficer;
   const assignedCenter = userCenterAssignment?.ecde_centers;
   const assignedCenterId = userCenterAssignment?.center_id;
 
@@ -202,11 +205,11 @@ export default function Dashboard() {
         <StudentStatistics students={studentsForStats} />
       )}
 
-      {/* Map - only show for admins */}
-      {!isCenterBased && <CentersMap />}
+      {/* Map - hide for scoped users (center/sub-county) */}
+      {!isScoped && <CentersMap />}
 
       {/* Charts & Activity - only show county-wide charts for admins */}
-      {!isCenterBased && (
+      {!isScoped && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <CenterDistribution />
           <RecentActivity />
