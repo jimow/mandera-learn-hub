@@ -75,6 +75,8 @@ export default function UsersManagement() {
   const [confirmRemoveOpen, setConfirmRemoveOpen] = useState(false);
   const [roleToRemove, setRoleToRemove] = useState<{ userId: string; role: AppRole; userName: string } | null>(null);
   const [userForCenterAssignment, setUserForCenterAssignment] = useState<{ userId: string; fullName: string } | null>(null);
+  const [subCountyDialogOpen, setSubCountyDialogOpen] = useState(false);
+  const [userForSubCountyAssignment, setUserForSubCountyAssignment] = useState<{ userId: string; fullName: string } | null>(null);
 
   const { data: users, isLoading } = useUsers();
   const assignRole = useAssignRole();
