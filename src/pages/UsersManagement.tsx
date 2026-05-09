@@ -223,7 +223,7 @@ export default function UsersManagement() {
                       </div>
                     </div>
                   </TableCell>
-                  <TableCell className="text-muted-foreground">{userProfile.email}</TableCell>
+                  <TableCell className="text-muted-foreground">{usePrivacyMask(userProfile.email)}</TableCell>
                   <TableCell>
                     <div className="flex flex-wrap gap-1">
                       {userProfile.roles.length > 0 ? (
