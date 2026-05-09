@@ -20,6 +20,7 @@ import MapView from "./pages/MapView";
 import CenterDetails from "./pages/CenterDetails";
 import Inventory from "./pages/Inventory";
 import Reports from "./pages/Reports";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
