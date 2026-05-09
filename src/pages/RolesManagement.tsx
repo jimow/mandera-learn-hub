@@ -20,6 +20,7 @@ const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
   center_admin: "Center-level management. Can manage students and update their center.",
   teacher: "Teaching staff. Can view students and update their records.",
   education_officer: "Ministry oversight. Can view all data for reporting purposes.",
+  sub_county_education_officer: "Sub-county oversight. Can only view & manage centers, students, teachers, and requisitions within assigned sub-counties.",
   governor: "Executive dashboard. Read-only access to county-wide statistics.",
   data_entry: "Data clerk. Can add and edit student and teacher records.",
   viewer: "Observer. Read-only access to students, teachers, and centers.",

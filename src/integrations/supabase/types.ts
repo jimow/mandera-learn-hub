@@ -1268,6 +1268,18 @@ export type Database = {
         Returns: undefined
       }
       super_admin_exists: { Args: never; Returns: boolean }
+      user_in_center_subcounty: {
+        Args: { _center_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_in_subcounty_id: {
+        Args: { _sub_county_id: string; _user_id: string }
+        Returns: boolean
+      }
+      user_in_subcounty_name: {
+        Args: { _sub_county_name: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       app_role:
@@ -1279,6 +1291,7 @@ export type Database = {
         | "teacher"
         | "education_officer"
         | "governor"
+        | "sub_county_education_officer"
       approval_status:
         | "pending"
         | "approved_subcounty"
@@ -1443,6 +1456,7 @@ export const Constants = {
         "teacher",
         "education_officer",
         "governor",
+        "sub_county_education_officer",
       ],
       approval_status: [
         "pending",
