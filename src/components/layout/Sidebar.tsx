@@ -86,7 +86,10 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Approvals", 
       href: "/approvals", 
       icon: ClipboardCheck,
-      visible: hasPermission("approvals_level1", "read") || hasPermission("approvals_level2", "read"),
+      visible: hasPermission("approvals_level1", "read") || hasPermission("approvals_level2", "read")
+        || hasPermission("approvals_students_l1", "read") || hasPermission("approvals_students_l2", "read")
+        || hasPermission("approvals_centers_l1", "read") || hasPermission("approvals_centers_l2", "read")
+        || hasPermission("approvals_requisitions_l1", "read") || hasPermission("approvals_requisitions_l2", "read"),
     },
     { 
       name: "Roles & Permissions", 

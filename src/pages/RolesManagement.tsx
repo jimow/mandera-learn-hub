@@ -26,7 +26,28 @@ const ROLE_DESCRIPTIONS: Record<AppRole, string> = {
 };
 
 const RESOURCES = ["students", "teachers", "centers", "users", "roles", "dashboard"];
-const APPROVAL_LEVELS = ["approvals_level1", "approvals_level2"];
+const APPROVAL_LEVELS = [
+  "approvals_students_l1",
+  "approvals_students_l2",
+  "approvals_centers_l1",
+  "approvals_centers_l2",
+  "approvals_requisitions_l1",
+  "approvals_requisitions_l2",
+  // legacy (kept for back-compat)
+  "approvals_level1",
+  "approvals_level2",
+];
+
+const APPROVAL_LABELS: Record<string, string> = {
+  approvals_students_l1: "Students - Level 1 (Sub-County)",
+  approvals_students_l2: "Students - Level 2 (Ministry)",
+  approvals_centers_l1: "Centers - Level 1 (Sub-County)",
+  approvals_centers_l2: "Centers - Level 2 (Ministry)",
+  approvals_requisitions_l1: "Requisitions - Level 1 (Sub-County)",
+  approvals_requisitions_l2: "Requisitions - Level 2 (Ministry)",
+  approvals_level1: "Legacy Level 1",
+  approvals_level2: "Legacy Level 2",
+};
 
 function formatRole(role: string) {
   return role.replace(/_/g, " ").replace(/\b\w/g, (l) => l.toUpperCase());
@@ -226,7 +247,7 @@ export default function RolesManagement() {
                           <tbody>
                             {APPROVAL_LEVELS.map((level) => {
                               const perm = getApprovalPermission(role, level);
-                              const levelLabel = level === "approvals_level1" ? "Level 1 (Sub-County)" : "Level 2 (Ministry)";
+                              const levelLabel = APPROVAL_LABELS[level] || level;
                               return (
                                 <tr key={level} className="border-t">
                                   <td className="p-3 font-medium">{levelLabel}</td>
