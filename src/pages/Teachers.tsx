@@ -41,6 +41,7 @@ export default function Teachers() {
   const { data: teachers, isLoading } = useTeachers();
   const deleteTeacher = useDeleteTeacher();
   const { hasPermission } = useAuth();
+  const { mask } = usePrivacy();
 
   const canCreate = hasPermission("teachers", "create");
   const canUpdate = hasPermission("teachers", "update");
