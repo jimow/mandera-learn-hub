@@ -34,6 +34,7 @@ import {
 } from "@/components/ui/select";
 import { useUsers, useAssignRole, useRemoveRole, useUpdateProfile } from "@/hooks/useUsers";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { CenterAssignmentDialog } from "@/components/users/CenterAssignmentDialog";
 import type { Database } from "@/integrations/supabase/types";
