@@ -67,8 +67,10 @@ export default function Inventory() {
   const deleteItem = useDeleteInventoryItem();
   const updateReqStatus = useUpdateRequisitionStatus();
   const analyzeReq = useAnalyzeRequisition();
-  const canApproveL1 = isAdmin() || isEducationOfficerRole;
-  const canApproveL2 = isAdmin();
+  const canApproveL1 = isAdmin() || isEducationOfficerRole
+    || hasPermission("approvals_requisitions_l1", "update");
+  const canApproveL2 = isAdmin()
+    || hasPermission("approvals_requisitions_l2", "update");
 
   const filteredItems = useMemo(() => items.filter((it: any) => {
     const matchSearch = it.name.toLowerCase().includes(search.toLowerCase()) || (it.sku ?? "").toLowerCase().includes(search.toLowerCase());
