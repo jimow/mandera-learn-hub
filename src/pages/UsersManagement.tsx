@@ -55,6 +55,7 @@ function getRoleBadgeVariant(role: string) {
     case "admin": return "default";
     case "center_admin": return "default";
     case "education_officer": return "secondary";
+    case "sub_county_education_officer": return "secondary";
     case "governor": return "outline";
     case "teacher": return "secondary";
     case "data_entry": return "secondary";
@@ -176,6 +177,7 @@ export default function UsersManagement() {
           <div><Badge variant="default" className="mb-1">Center Admin</Badge><p className="text-xs text-muted-foreground">Manage center data</p></div>
           <div><Badge variant="secondary" className="mb-1">Teacher</Badge><p className="text-xs text-muted-foreground">View & update students</p></div>
           <div><Badge variant="secondary" className="mb-1">Education Officer</Badge><p className="text-xs text-muted-foreground">View all data</p></div>
+          <div><Badge variant="secondary" className="mb-1">Sub-County Officer</Badge><p className="text-xs text-muted-foreground">Manage assigned sub-counties</p></div>
           <div><Badge variant="outline" className="mb-1">Governor</Badge><p className="text-xs text-muted-foreground">Dashboard view only</p></div>
           <div><Badge variant="secondary" className="mb-1">Data Entry</Badge><p className="text-xs text-muted-foreground">Add & edit records</p></div>
           <div><Badge variant="outline" className="mb-1">Viewer</Badge><p className="text-xs text-muted-foreground">Read-only access</p></div>
@@ -246,6 +248,19 @@ export default function UsersManagement() {
                         ))
                       ) : (
                         <span className="text-muted-foreground text-sm">No roles assigned</span>
+                      )}
+                      {userProfile.roles.includes("sub_county_education_officer") && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="h-7 gap-1 text-xs"
+                          onClick={() => handleManageSubCounties(userProfile)}
+                        >
+                          <MapPin className="w-3 h-3" />
+                          {(userProfile.subCountyAssignments?.length || 0) > 0
+                            ? `${userProfile.subCountyAssignments.length} Sub-Counties`
+                            : "Assign Sub-County"}
+                        </Button>
                       )}
                     </div>
                   </TableCell>
