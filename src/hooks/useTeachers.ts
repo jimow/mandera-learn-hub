@@ -15,12 +15,12 @@ interface TeacherWithCenter extends Teacher {
 }
 
 export function useTeachers(centerId?: string) {
-  const { hasRole } = useAuth();
+  const { user, hasRole, isAdmin } = useAuth();
   const { data: centerAssignment, isLoading: isLoadingAssignment } = useUserCenterAssignment();
   const { data: mySubCounties, isLoading: isLoadingSubCounties } = useMySubCounties();
   
   const isCenterBased = hasRole("center_admin") || hasRole("teacher");
-  const isSubCountyOfficer = hasRole("sub_county_education_officer");
+  const isSubCountyOfficer = !isAdmin() && (hasRole("sub_county_education_officer") || hasRole("education_officer"));
   const userCenterId = centerAssignment?.center_id;
   const subCountyNames = (mySubCounties || []).map((s) => s.name);
   
@@ -29,6 +29,7 @@ export function useTeachers(centerId?: string) {
   return useQuery({
     queryKey: [
       "teachers",
+      user?.id,
       effectiveCenterId || (isSubCountyOfficer ? `sc:${subCountyNames.join(",")}` : "all"),
     ],
     queryFn: async () => {
