@@ -8,6 +8,11 @@ type AppRole = Database["public"]["Enums"]["app_role"];
 
 interface UserWithRoles extends Profile {
   roles: AppRole[];
+  subCountyAssignments: {
+    id: string;
+    sub_county_id: string;
+    sub_counties: { name: string; code: string } | null;
+  }[];
 }
 
 export function useUsers() {
@@ -28,6 +33,13 @@ export function useUsers() {
         .select("*");
       
       if (rolesError) throw rolesError;
+
+      const { data: subCountyAssignments, error: assignmentsError } = await supabase
+        .from("user_subcounty_assignments")
+        .select("id, user_id, sub_county_id, sub_counties(name, code)")
+        .eq("is_active", true);
+
+      if (assignmentsError) throw assignmentsError;
       
       // Combine profiles with their roles
       const usersWithRoles: UserWithRoles[] = profiles.map(profile => ({
@@ -35,6 +47,9 @@ export function useUsers() {
         roles: allRoles
           .filter(r => r.user_id === profile.user_id)
           .map(r => r.role),
+        subCountyAssignments: (subCountyAssignments || [])
+          .filter((assignment) => assignment.user_id === profile.user_id)
+          .map(({ id, sub_county_id, sub_counties }) => ({ id, sub_county_id, sub_counties })),
       }));
       
       return usersWithRoles;
@@ -65,6 +80,7 @@ export function useUser(userId: string) {
       return {
         ...profile,
         roles: roles?.map(r => r.role) || [],
+        subCountyAssignments: [],
       } as UserWithRoles;
     },
     enabled: !!userId,
