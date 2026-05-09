@@ -111,6 +111,14 @@ export default function UsersManagement() {
     setCenterDialogOpen(true);
   };
 
+  const handleManageSubCounties = (userProfile: typeof filteredUsers[0]) => {
+    setUserForSubCountyAssignment({
+      userId: userProfile.user_id,
+      fullName: userProfile.full_name,
+    });
+    setSubCountyDialogOpen(true);
+  };
+
   const handleAssignRole = async () => {
     if (selectedUser && selectedRole) {
       await assignRole.mutateAsync({ userId: selectedUser.userId, role: selectedRole });
