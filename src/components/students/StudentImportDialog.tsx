@@ -132,7 +132,7 @@ export function StudentImportDialog({ open, onOpenChange }: StudentImportDialogP
         </DialogHeader>
 
         {step === "upload" && (
-          <div className="space-y-6">
+          <div className="space-y-6 overflow-y-auto pr-2">
             {/* Download Templates */}
             <div className="space-y-2">
               <h4 className="text-sm font-medium">Download Template</h4>
@@ -206,19 +206,49 @@ export function StudentImportDialog({ open, onOpenChange }: StudentImportDialogP
               )}
             </div>
 
-            {/* Column Reference */}
-            <div className="space-y-2">
-              <h4 className="text-sm font-medium">Required Columns</h4>
-              <div className="flex flex-wrap gap-1">
-                {IMPORT_COLUMNS.filter((c) => c.required).map((col) => (
-                  <Badge key={col.key} variant="secondary" className="text-xs">
-                    {col.label}
-                  </Badge>
-                ))}
+            {/* Comprehensive Guide */}
+            <div className="space-y-3 rounded-lg border bg-muted/30 p-4">
+              <div className="flex items-center gap-2">
+                <FileText className="w-4 h-4 text-primary" />
+                <h4 className="text-sm font-semibold">Import Guide</h4>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Optional: {IMPORT_COLUMNS.filter((c) => !c.required).map((c) => c.label).join(", ")}
-              </p>
+              <ol className="text-xs text-muted-foreground space-y-1 list-decimal list-inside">
+                <li>Download a template (CSV or Excel) above.</li>
+                <li>Fill in one student per row. Do not rename column headers.</li>
+                <li>Required columns must not be blank. Use exact formats below.</li>
+                <li>Centers are matched by <strong>name</strong> or <strong>code</strong>. Leave blank to import as unassigned.</li>
+                <li>Admission numbers must be unique across the file and the system.</li>
+                <li>Save the file and upload it. Errors will be shown row-by-row.</li>
+              </ol>
+              <ScrollArea className="h-56 rounded border bg-background">
+                <Table>
+                  <TableHeader className="sticky top-0 bg-background">
+                    <TableRow>
+                      <TableHead className="h-8">Column</TableHead>
+                      <TableHead className="h-8 w-20">Required</TableHead>
+                      <TableHead className="h-8">Format / Example</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {IMPORT_COLUMNS.map((col) => (
+                      <TableRow key={col.key}>
+                        <TableCell className="py-1.5 text-xs font-medium">{col.label}</TableCell>
+                        <TableCell className="py-1.5 text-xs">
+                          {col.required ? (
+                            <Badge variant="default" className="text-[10px]">Required</Badge>
+                          ) : (
+                            <Badge variant="outline" className="text-[10px]">Optional</Badge>
+                          )}
+                        </TableCell>
+                        <TableCell className="py-1.5 text-xs text-muted-foreground">
+                          <code className="text-[11px]">{col.example}</code>
+                          {col.note && <span className="block text-[10px] italic">{col.note}</span>}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </ScrollArea>
             </div>
 
             {/* Import Button */}

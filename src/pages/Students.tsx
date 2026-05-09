@@ -1,7 +1,11 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
+import { useCenters } from "@/hooks/useCenters";
 import {
   Table,
   TableBody,
@@ -45,6 +49,11 @@ const getApprovalStatusBadge = (status: string | null) => {
 
 export default function Students() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [filterGender, setFilterGender] = useState<string>("all");
+  const [filterClassLevel, setFilterClassLevel] = useState<string>("all");
+  const [filterApproval, setFilterApproval] = useState<string>("all");
+  const [filterStatus, setFilterStatus] = useState<string>("all");
+  const [filterCenter, setFilterCenter] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -52,6 +61,7 @@ export default function Students() {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   
   const { data: students, isLoading } = useStudents();
+  const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
   const { hasPermission } = useAuth();
 
@@ -59,10 +69,43 @@ export default function Students() {
   const canUpdate = hasPermission("students", "update");
   const canDelete = hasPermission("students", "delete");
 
-  const filteredStudents = students?.filter((student) =>
-    student.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    student.admission_number.toLowerCase().includes(searchQuery.toLowerCase())
-  ) || [];
+  const activeFilterCount =
+    (filterGender !== "all" ? 1 : 0) +
+    (filterClassLevel !== "all" ? 1 : 0) +
+    (filterApproval !== "all" ? 1 : 0) +
+    (filterStatus !== "all" ? 1 : 0) +
+    (filterCenter !== "all" ? 1 : 0);
+
+  const clearFilters = () => {
+    setFilterGender("all");
+    setFilterClassLevel("all");
+    setFilterApproval("all");
+    setFilterStatus("all");
+    setFilterCenter("all");
+  };
+
+  const filteredStudents = students?.filter((student) => {
+    const q = searchQuery.toLowerCase();
+    const matchesSearch =
+      !q ||
+      student.full_name.toLowerCase().includes(q) ||
+      student.admission_number.toLowerCase().includes(q) ||
+      student.parent_name?.toLowerCase().includes(q) ||
+      student.parent_phone?.toLowerCase().includes(q);
+    const matchesGender = filterGender === "all" || student.gender === filterGender;
+    const matchesClass = filterClassLevel === "all" || (student as any).class_level === filterClassLevel;
+    const matchesApproval =
+      filterApproval === "all" || ((student as any).approval_status || "pending") === filterApproval;
+    const matchesStatus =
+      filterStatus === "all" ||
+      (filterStatus === "active" ? student.is_active : !student.is_active);
+    const matchesCenter =
+      filterCenter === "all" ||
+      (filterCenter === "unassigned"
+        ? !student.center_id
+        : student.center_id === filterCenter);
+    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter;
+  }) || [];
 
   const {
     paginatedData,
@@ -144,10 +187,90 @@ export default function Students() {
             className="pl-10"
           />
         </div>
-        <Button variant="outline" className="gap-2">
-          <Filter className="w-4 h-4" />
-          Filters
-        </Button>
+        <Popover>
+          <PopoverTrigger asChild>
+            <Button variant="outline" className="gap-2">
+              <Filter className="w-4 h-4" />
+              Filters
+              {activeFilterCount > 0 && (
+                <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-2 py-0.5">
+                  {activeFilterCount}
+                </span>
+              )}
+            </Button>
+          </PopoverTrigger>
+          <PopoverContent className="w-80 bg-popover" align="end">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-medium">Filter Students</h4>
+                {activeFilterCount > 0 && (
+                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 gap-1">
+                    <X className="w-3 h-3" /> Clear
+                  </Button>
+                )}
+              </div>
+              <div className="space-y-2">
+                <Label>Gender</Label>
+                <Select value={filterGender} onValueChange={setFilterGender}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="male">Male</SelectItem>
+                    <SelectItem value="female">Female</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Class Level</Label>
+                <Select value={filterClassLevel} onValueChange={setFilterClassLevel}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pp1">PP1</SelectItem>
+                    <SelectItem value="pp2">PP2</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Approval</Label>
+                <Select value={filterApproval} onValueChange={setFilterApproval}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="approved_subcounty">Pending Ministry</SelectItem>
+                    <SelectItem value="approved_ministry">Approved</SelectItem>
+                    <SelectItem value="rejected">Rejected</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Status</Label>
+                <Select value={filterStatus} onValueChange={setFilterStatus}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-popover">
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="active">Active</SelectItem>
+                    <SelectItem value="inactive">Inactive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="space-y-2">
+                <Label>Center</Label>
+                <Select value={filterCenter} onValueChange={setFilterCenter}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent className="bg-popover max-h-64">
+                    <SelectItem value="all">All Centers</SelectItem>
+                    <SelectItem value="unassigned">Unassigned</SelectItem>
+                    {centers?.map((c) => (
+                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </PopoverContent>
+        </Popover>
       </div>
 
       <div className="data-table animate-fade-in">
