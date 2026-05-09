@@ -24,6 +24,7 @@ import { TablePagination } from "@/components/shared/TablePagination";
 import { useTeachers, useDeleteTeacher } from "@/hooks/useTeachers";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
+import { usePrivacy } from "@/hooks/usePrivacy";
 import type { Database } from "@/integrations/supabase/types";
 
 type Teacher = Database["public"]["Tables"]["teachers"]["Row"];
