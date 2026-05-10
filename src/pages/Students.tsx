@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle, Copy, Phone, Mail, MessageSquare, Power, ArrowRightLeft, Printer, GraduationCap } from "lucide-react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -19,15 +20,22 @@ import {
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
+  DropdownMenuSeparator,
+  DropdownMenuLabel,
+  DropdownMenuSub,
+  DropdownMenuSubTrigger,
+  DropdownMenuSubContent,
+  DropdownMenuPortal,
 } from "@/components/ui/dropdown-menu";
 import { Badge } from "@/components/ui/badge";
 import { StudentDialog } from "@/components/students/StudentDialog";
 import { StudentImportDialog } from "@/components/students/StudentImportDialog";
+import { StudentDetailsDialog } from "@/components/students/StudentDetailsDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
 import { RejectDialog } from "@/components/approvals/RejectDialog";
 import { DataActions } from "@/components/shared/DataActions";
 import { TablePagination } from "@/components/shared/TablePagination";
-import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
+import { useStudents, useDeleteStudent, useToggleStudentActive, useTransferStudent, useChangeClassLevel } from "@/hooks/useStudents";
 import { useApproveBySubcounty, useApproveByMinistry, useRejectStudent } from "@/hooks/useStudentApproval";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
@@ -64,14 +72,19 @@ export default function Students() {
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [detailsStudent, setDetailsStudent] = useState<any | null>(null);
   
   const { data: students, isLoading } = useStudents();
   const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
+  const toggleActive = useToggleStudentActive();
+  const transferStudent = useTransferStudent();
+  const changeClassLevel = useChangeClassLevel();
   const approveL1 = useApproveBySubcounty();
   const approveL2 = useApproveByMinistry();
   const rejectStudent = useRejectStudent();
-  const { hasPermission } = useAuth();
+  const { hasPermission, isAdmin } = useAuth();
   const { mask } = usePrivacy();
 
   const canCreate = hasPermission("students", "create");
