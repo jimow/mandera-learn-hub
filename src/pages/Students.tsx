@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -24,9 +24,11 @@ import { Badge } from "@/components/ui/badge";
 import { StudentDialog } from "@/components/students/StudentDialog";
 import { StudentImportDialog } from "@/components/students/StudentImportDialog";
 import { DeleteConfirmDialog } from "@/components/shared/DeleteConfirmDialog";
+import { RejectDialog } from "@/components/approvals/RejectDialog";
 import { DataActions } from "@/components/shared/DataActions";
 import { TablePagination } from "@/components/shared/TablePagination";
 import { useStudents, useDeleteStudent } from "@/hooks/useStudents";
+import { useApproveBySubcounty, useApproveByMinistry, useRejectStudent } from "@/hooks/useStudentApproval";
 import { usePagination } from "@/hooks/usePagination";
 import { useAuth } from "@/contexts/AuthContext";
 import { usePrivacy } from "@/hooks/usePrivacy";
@@ -60,16 +62,31 @@ export default function Students() {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [studentToReject, setStudentToReject] = useState<Student | null>(null);
   
   const { data: students, isLoading } = useStudents();
   const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
+  const approveL1 = useApproveBySubcounty();
+  const approveL2 = useApproveByMinistry();
+  const rejectStudent = useRejectStudent();
   const { hasPermission } = useAuth();
   const { mask } = usePrivacy();
 
   const canCreate = hasPermission("students", "create");
   const canUpdate = hasPermission("students", "update");
   const canDelete = hasPermission("students", "delete");
+  const canApproveL1 =
+    hasPermission("approvals_students_l1", "update") ||
+    hasPermission("approvals_level1", "update") ||
+    hasPermission("students", "approve_subcounty");
+  const canApproveL2 =
+    hasPermission("approvals_students_l2", "update") ||
+    hasPermission("approvals_level2", "update") ||
+    hasPermission("students", "approve_ministry");
+  const canReject =
+    hasPermission("students", "reject") || canApproveL1 || canApproveL2;
 
   const activeFilterCount =
     (filterGender !== "all" ? 1 : 0) +
@@ -136,6 +153,14 @@ export default function Students() {
       await deleteStudent.mutateAsync(studentToDelete.id);
       setDeleteDialogOpen(false);
       setStudentToDelete(null);
+    }
+  };
+
+  const confirmReject = async (reason: string) => {
+    if (studentToReject) {
+      await rejectStudent.mutateAsync({ studentId: studentToReject.id, reason });
+      setRejectDialogOpen(false);
+      setStudentToReject(null);
     }
   };
 
@@ -331,6 +356,37 @@ export default function Students() {
                             <Edit className="w-4 h-4" /> Edit
                           </DropdownMenuItem>
                         )}
+                        {canApproveL1 && (student as any).approval_status === "pending" && (
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => approveL1.mutate(student.id)}
+                            disabled={approveL1.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4" /> Approve (Sub-county)
+                          </DropdownMenuItem>
+                        )}
+                        {canApproveL2 && (student as any).approval_status === "approved_subcounty" && (
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => approveL2.mutate(student.id)}
+                            disabled={approveL2.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4" /> Approve (Ministry)
+                          </DropdownMenuItem>
+                        )}
+                        {canReject &&
+                          ((student as any).approval_status === "pending" ||
+                            (student as any).approval_status === "approved_subcounty") && (
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive"
+                              onClick={() => {
+                                setStudentToReject(student);
+                                setRejectDialogOpen(true);
+                              }}
+                            >
+                              <XCircle className="w-4 h-4" /> Reject
+                            </DropdownMenuItem>
+                          )}
                         {canDelete && (
                           <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(student)}>
                             <Trash2 className="w-4 h-4" /> Delete
@@ -365,6 +421,13 @@ export default function Students() {
         title="Delete Student"
         description={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
         isLoading={deleteStudent.isPending}
+      />
+      <RejectDialog
+        open={rejectDialogOpen}
+        onOpenChange={setRejectDialogOpen}
+        onConfirm={confirmReject}
+        studentName={studentToReject?.full_name || ""}
+        isLoading={rejectStudent.isPending}
       />
     </div>
   );
