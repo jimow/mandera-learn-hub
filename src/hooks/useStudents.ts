@@ -163,3 +163,84 @@ export function useDeleteStudent() {
     },
   });
 }
+
+export function useToggleStudentActive() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, is_active }: { id: string; is_active: boolean }) => {
+      const { data, error } = await supabase
+        .from("students")
+        .update({ is_active })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (_d, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success(vars.is_active ? "Student activated" : "Student deactivated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useTransferStudent() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, center_id }: { id: string; center_id: string }) => {
+      const { data, error } = await supabase
+        .from("students")
+        .update({ center_id })
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Student transferred successfully");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useChangeClassLevel() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async ({ id, class_level }: { id: string; class_level: "pp1" | "pp2" }) => {
+      const { data, error } = await supabase
+        .from("students")
+        .update({ class_level } as any)
+        .eq("id", id)
+        .select()
+        .single();
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Class level updated");
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+}
+
+export function useStudentAttendance(studentId: string | undefined) {
+  return useQuery({
+    queryKey: ["student-attendance", studentId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("student_attendance")
+        .select("*")
+        .eq("student_id", studentId!)
+        .order("attendance_date", { ascending: false })
+        .limit(60);
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!studentId,
+  });
+}
+
