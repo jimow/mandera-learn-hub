@@ -37,6 +37,7 @@ export default function Teachers() {
   const [filterGender, setFilterGender] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCenter, setFilterCenter] = useState<string>("all");
+  const [filterSubCounty, setFilterSubCounty] = useState<string>("all");
   const [filterQualification, setFilterQualification] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
