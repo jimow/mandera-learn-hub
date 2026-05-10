@@ -156,6 +156,14 @@ export default function Students() {
     }
   };
 
+  const confirmReject = async (reason: string) => {
+    if (studentToReject) {
+      await rejectStudent.mutateAsync({ studentId: studentToReject.id, reason });
+      setRejectDialogOpen(false);
+      setStudentToReject(null);
+    }
+  };
+
   // Prepare data for export (remove nested objects and format for CSV)
   const exportData = filteredStudents.map(student => ({
     admission_number: student.admission_number,
