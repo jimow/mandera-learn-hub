@@ -62,16 +62,31 @@ export default function Students() {
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [studentToDelete, setStudentToDelete] = useState<Student | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [studentToReject, setStudentToReject] = useState<Student | null>(null);
   
   const { data: students, isLoading } = useStudents();
   const { data: centers } = useCenters();
   const deleteStudent = useDeleteStudent();
+  const approveL1 = useApproveBySubcounty();
+  const approveL2 = useApproveByMinistry();
+  const rejectStudent = useRejectStudent();
   const { hasPermission } = useAuth();
   const { mask } = usePrivacy();
 
   const canCreate = hasPermission("students", "create");
   const canUpdate = hasPermission("students", "update");
   const canDelete = hasPermission("students", "delete");
+  const canApproveL1 =
+    hasPermission("approvals_students_l1", "update") ||
+    hasPermission("approvals_level1", "update") ||
+    hasPermission("students", "approve_subcounty");
+  const canApproveL2 =
+    hasPermission("approvals_students_l2", "update") ||
+    hasPermission("approvals_level2", "update") ||
+    hasPermission("students", "approve_ministry");
+  const canReject =
+    hasPermission("students", "reject") || canApproveL1 || canApproveL2;
 
   const activeFilterCount =
     (filterGender !== "all" ? 1 : 0) +
