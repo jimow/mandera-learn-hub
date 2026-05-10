@@ -248,84 +248,15 @@ export default function Teachers() {
         </div>
       </div>
 
-      <div className="rounded-lg border bg-card p-4 shadow-sm space-y-3">
-        <div className="flex flex-col lg:flex-row lg:items-end gap-3">
-          <div className="flex-1 min-w-[200px] space-y-1.5">
-            <Label className="text-xs text-muted-foreground">Search</Label>
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-              <Input
-                placeholder="Name, employee no, phone, email…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:flex lg:flex-row lg:flex-1">
-            <div className="space-y-1.5 lg:flex-1 lg:min-w-[120px]">
-              <Label className="text-xs text-muted-foreground">Gender</Label>
-              <Select value={filterGender} onValueChange={setFilterGender}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="male">Male</SelectItem>
-                  <SelectItem value="female">Female</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 lg:flex-1 lg:min-w-[120px]">
-              <Label className="text-xs text-muted-foreground">Status</Label>
-              <Select value={filterStatus} onValueChange={setFilterStatus}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover">
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="active">Active</SelectItem>
-                  <SelectItem value="inactive">Inactive</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 lg:flex-1 lg:min-w-[160px]">
-              <Label className="text-xs text-muted-foreground">Center</Label>
-              <Select value={filterCenter} onValueChange={setFilterCenter}>
-                <SelectTrigger><SelectValue /></SelectTrigger>
-                <SelectContent className="bg-popover max-h-64">
-                  <SelectItem value="all">All Centers</SelectItem>
-                  <SelectItem value="unassigned">Unassigned</SelectItem>
-                  {centers?.map((c) => (
-                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="space-y-1.5 lg:flex-1 lg:min-w-[140px]">
-              <Label className="text-xs text-muted-foreground">Qualification</Label>
-              <Select
-                value={filterQualification}
-                onValueChange={setFilterQualification}
-                disabled={qualifications.length === 0}
-              >
-                <SelectTrigger><SelectValue placeholder="All" /></SelectTrigger>
-                <SelectContent className="bg-popover max-h-64">
-                  <SelectItem value="all">All</SelectItem>
-                  {qualifications.map((q) => (
-                    <SelectItem key={q} value={q}>{q}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-          {activeFilterCount > 0 && (
-            <Button
-              variant="ghost"
-              onClick={clearFilters}
-              className="gap-1 self-end text-muted-foreground hover:text-foreground"
-            >
-              <X className="w-4 h-4" /> Clear ({activeFilterCount})
-            </Button>
-          )}
-        </div>
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Name, employee no, phone, email…"
+        filters={filterDefs}
+        values={filterValues}
+        onChange={handleFilterChange}
+        onClear={clearFilters}
+      />
 
       <div className="data-table animate-fade-in">
         {isLoading ? (
