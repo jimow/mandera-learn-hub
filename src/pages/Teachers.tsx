@@ -1,11 +1,8 @@
 import { useState, useMemo } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, ArrowRightLeft, Upload, X } from "lucide-react";
+import { Plus, MoreVertical, Eye, Edit, Trash2, ArrowRightLeft, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Label } from "@/components/ui/label";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { FilterBar, type FilterDef } from "@/components/shared/FilterBar";
 import {
   Table,
   TableBody,
