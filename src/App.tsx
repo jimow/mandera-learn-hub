@@ -19,6 +19,7 @@ import ApiDocumentation from "./pages/ApiDocumentation";
 import MapView from "./pages/MapView";
 import CenterDetails from "./pages/CenterDetails";
 import Inventory from "./pages/Inventory";
+import Attendance from "./pages/Attendance";
 import Reports from "./pages/Reports";
 import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
@@ -166,6 +167,16 @@ function AppRoutes() {
         element={
           <ProtectedRoute>
             <CenterDetails />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/attendance"
+        element={
+          <ProtectedRoute>
+            <DashboardLayout onLogout={signOut}>
+              <Attendance />
+            </DashboardLayout>
           </ProtectedRoute>
         }
       />

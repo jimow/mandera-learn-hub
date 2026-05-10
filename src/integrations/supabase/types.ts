@@ -711,6 +711,42 @@ export type Database = {
           },
         ]
       }
+      student_attendance: {
+        Row: {
+          attendance_date: string
+          center_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          recorded_by: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_date?: string
+          center_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          recorded_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_date?: string
+          center_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          recorded_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          student_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       students: {
         Row: {
           address: string | null
@@ -887,6 +923,42 @@ export type Database = {
           updated_at?: string
           updated_by?: string | null
           value?: Json
+        }
+        Relationships: []
+      }
+      teacher_attendance: {
+        Row: {
+          attendance_date: string
+          center_id: string
+          created_at: string
+          id: string
+          reason: string | null
+          recorded_by: string | null
+          status: Database["public"]["Enums"]["attendance_status"]
+          teacher_id: string
+          updated_at: string
+        }
+        Insert: {
+          attendance_date?: string
+          center_id: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          recorded_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          teacher_id: string
+          updated_at?: string
+        }
+        Update: {
+          attendance_date?: string
+          center_id?: string
+          created_at?: string
+          id?: string
+          reason?: string | null
+          recorded_by?: string | null
+          status?: Database["public"]["Enums"]["attendance_status"]
+          teacher_id?: string
+          updated_at?: string
         }
         Relationships: []
       }
@@ -1297,6 +1369,7 @@ export type Database = {
         | "approved_subcounty"
         | "approved_ministry"
         | "rejected"
+      attendance_status: "present" | "absent" | "late" | "excused"
       class_level: "pp1" | "pp2"
       gender: "male" | "female"
       inventory_category:
@@ -1464,6 +1537,7 @@ export const Constants = {
         "approved_ministry",
         "rejected",
       ],
+      attendance_status: ["present", "absent", "late", "excused"],
       class_level: ["pp1", "pp2"],
       gender: ["male", "female"],
       inventory_category: [
