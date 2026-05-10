@@ -1,12 +1,9 @@
-import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle, Copy, Phone, Mail, MessageSquare, Power, ArrowRightLeft, Printer, GraduationCap } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, MoreVertical, Eye, Edit, Trash2, Upload, CheckCircle, XCircle, Copy, Phone, Mail, MessageSquare, Power, ArrowRightLeft, Printer, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useCenters } from "@/hooks/useCenters";
+import { FilterBar, type FilterDef } from "@/components/shared/FilterBar";
 import {
   Table,
   TableBody,
@@ -65,6 +62,7 @@ export default function Students() {
   const [filterApproval, setFilterApproval] = useState<string>("all");
   const [filterStatus, setFilterStatus] = useState<string>("all");
   const [filterCenter, setFilterCenter] = useState<string>("all");
+  const [filterSubCounty, setFilterSubCounty] = useState<string>("all");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [importDialogOpen, setImportDialogOpen] = useState(false);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
@@ -101,12 +99,13 @@ export default function Students() {
   const canReject =
     hasPermission("students", "reject") || canApproveL1 || canApproveL2;
 
-  const activeFilterCount =
-    (filterGender !== "all" ? 1 : 0) +
-    (filterClassLevel !== "all" ? 1 : 0) +
-    (filterApproval !== "all" ? 1 : 0) +
-    (filterStatus !== "all" ? 1 : 0) +
-    (filterCenter !== "all" ? 1 : 0);
+  const subCounties = useMemo(() => {
+    const set = new Set<string>();
+    (centers || []).forEach((c: any) => {
+      if (c.sub_county?.trim()) set.add(c.sub_county.trim());
+    });
+    return Array.from(set).sort();
+  }, [centers]);
 
   const clearFilters = () => {
     setFilterGender("all");
@@ -114,9 +113,10 @@ export default function Students() {
     setFilterApproval("all");
     setFilterStatus("all");
     setFilterCenter("all");
+    setFilterSubCounty("all");
   };
 
-  const filteredStudents = students?.filter((student) => {
+  const filteredStudents = (students || []).filter((student) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       !q ||
@@ -136,8 +136,93 @@ export default function Students() {
       (filterCenter === "unassigned"
         ? !student.center_id
         : student.center_id === filterCenter);
-    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter;
-  }) || [];
+    const matchesSubCounty =
+      filterSubCounty === "all" ||
+      (student as any).ecde_centers?.sub_county === filterSubCounty;
+    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter && matchesSubCounty;
+  });
+
+  const filterDefs: FilterDef[] = useMemo(() => [
+    {
+      key: "gender",
+      label: "Gender",
+      options: [
+        { value: "all", label: "All genders" },
+        { value: "male", label: "Male" },
+        { value: "female", label: "Female" },
+      ],
+    },
+    {
+      key: "classLevel",
+      label: "Class",
+      options: [
+        { value: "all", label: "All classes" },
+        { value: "pp1", label: "PP1" },
+        { value: "pp2", label: "PP2" },
+      ],
+    },
+    {
+      key: "status",
+      label: "Status",
+      options: [
+        { value: "all", label: "All" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+    {
+      key: "approval",
+      label: "Approval",
+      options: [
+        { value: "all", label: "All approvals" },
+        { value: "pending", label: "Pending" },
+        { value: "approved_subcounty", label: "Pending Ministry" },
+        { value: "approved_ministry", label: "Approved" },
+        { value: "rejected", label: "Rejected" },
+      ],
+      primary: false,
+    },
+    {
+      key: "subCounty",
+      label: "Sub-county",
+      options: [
+        { value: "all", label: "All sub-counties" },
+        ...subCounties.map((s) => ({ value: s, label: s })),
+      ],
+      primary: false,
+    },
+    {
+      key: "center",
+      label: "Center",
+      options: [
+        { value: "all", label: "All centers" },
+        { value: "unassigned", label: "Unassigned" },
+        ...((centers || []).map((c) => ({ value: c.id, label: c.name }))),
+      ],
+      primary: false,
+    },
+  ], [centers, subCounties]);
+
+  const filterValues = {
+    gender: filterGender,
+    classLevel: filterClassLevel,
+    status: filterStatus,
+    approval: filterApproval,
+    subCounty: filterSubCounty,
+    center: filterCenter,
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    switch (key) {
+      case "gender": setFilterGender(value); break;
+      case "classLevel": setFilterClassLevel(value); break;
+      case "status": setFilterStatus(value); break;
+      case "approval": setFilterApproval(value); break;
+      case "subCounty": setFilterSubCounty(value); break;
+      case "center": setFilterCenter(value); break;
+    }
+  };
+
 
   const {
     paginatedData,
@@ -217,101 +302,15 @@ export default function Students() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search students..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-2 py-0.5">
-                  {activeFilterCount}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 bg-popover" align="end">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Filter Students</h4>
-                {activeFilterCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 gap-1">
-                    <X className="w-3 h-3" /> Clear
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select value={filterGender} onValueChange={setFilterGender}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Class Level</Label>
-                <Select value={filterClassLevel} onValueChange={setFilterClassLevel}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pp1">PP1</SelectItem>
-                    <SelectItem value="pp2">PP2</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Approval</Label>
-                <Select value={filterApproval} onValueChange={setFilterApproval}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved_subcounty">Pending Ministry</SelectItem>
-                    <SelectItem value="approved_ministry">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Center</Label>
-                <Select value={filterCenter} onValueChange={setFilterCenter}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover max-h-64">
-                    <SelectItem value="all">All Centers</SelectItem>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {centers?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
-      </div>
+      <FilterBar
+        searchValue={searchQuery}
+        onSearchChange={setSearchQuery}
+        searchPlaceholder="Name, admission no, parent, phone…"
+        filters={filterDefs}
+        values={filterValues}
+        onChange={handleFilterChange}
+        onClear={clearFilters}
+      />
 
       <div className="data-table animate-fade-in">
         {isLoading ? (
