@@ -434,8 +434,8 @@ export default function Attendance() {
   const [date, setDate] = useState<Date>(new Date());
   const dateStr = format(date, "yyyy-MM-dd");
   const isPastDate = !isToday(date);
-  const canEdit =
-    isAdmin() || hasRole("center_admin") || hasRole("teacher") || hasRole("data_entry");
+  // Only center-level users can mark attendance (not admins or sub-county officers)
+  const canEdit = hasRole("center_admin") || hasRole("teacher");
 
   const { data: students = [] } = useStudents(effectiveCenterId);
   const { data: teachers = [] } = useTeachers(effectiveCenterId);
