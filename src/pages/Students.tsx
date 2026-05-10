@@ -1,12 +1,9 @@
-import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle, Copy, Phone, Mail, MessageSquare, Power, ArrowRightLeft, Printer, GraduationCap } from "lucide-react";
+import { useState, useMemo } from "react";
+import { Plus, MoreVertical, Eye, Edit, Trash2, Upload, CheckCircle, XCircle, Copy, Phone, Mail, MessageSquare, Power, ArrowRightLeft, Printer, GraduationCap } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Label } from "@/components/ui/label";
 import { useCenters } from "@/hooks/useCenters";
+import { FilterBar, type FilterDef } from "@/components/shared/FilterBar";
 import {
   Table,
   TableBody,
