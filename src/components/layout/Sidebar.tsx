@@ -70,7 +70,7 @@ export function Sidebar({ onLogout }: SidebarProps) {
       name: "Attendance",
       href: "/attendance",
       icon: CalendarCheck,
-      visible: hasPermission("students", "read") || hasPermission("teachers", "read") || isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("data_entry") || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor") || hasRole("viewer"),
+      visible: hasPermission("attendance", "read") || isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("data_entry") || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor") || hasRole("viewer"),
     },
     {
       name: "Store & Inventory",
