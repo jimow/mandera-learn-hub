@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X } from "lucide-react";
+import { Plus, Search, Filter, MoreVertical, Eye, Edit, Trash2, Upload, X, CheckCircle, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
