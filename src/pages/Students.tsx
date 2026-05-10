@@ -360,8 +360,12 @@ export default function Students() {
                           <MoreVertical className="w-4 h-4" />
                         </Button>
                       </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem className="gap-2">
+                      <DropdownMenuContent align="end" className="w-56">
+                        <DropdownMenuLabel>Student Actions</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => { setDetailsStudent(student); setDetailsOpen(true); }}
+                        >
                           <Eye className="w-4 h-4" /> View Details
                         </DropdownMenuItem>
                         {canUpdate && (
@@ -369,6 +373,44 @@ export default function Students() {
                             <Edit className="w-4 h-4" /> Edit
                           </DropdownMenuItem>
                         )}
+
+                        <DropdownMenuSeparator />
+                        <DropdownMenuLabel className="text-xs text-muted-foreground">Quick Contact</DropdownMenuLabel>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          onClick={() => {
+                            navigator.clipboard.writeText(student.admission_number);
+                            toast.success("Admission number copied");
+                          }}
+                        >
+                          <Copy className="w-4 h-4" /> Copy Admission #
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          disabled={!student.parent_phone}
+                          onClick={() => student.parent_phone && (window.location.href = `tel:${student.parent_phone}`)}
+                        >
+                          <Phone className="w-4 h-4" /> Call Parent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          disabled={!student.parent_phone}
+                          onClick={() => student.parent_phone && (window.location.href = `sms:${student.parent_phone}`)}
+                        >
+                          <MessageSquare className="w-4 h-4" /> Send SMS
+                        </DropdownMenuItem>
+                        <DropdownMenuItem
+                          className="gap-2"
+                          disabled={!student.parent_email}
+                          onClick={() => student.parent_email && (window.location.href = `mailto:${student.parent_email}`)}
+                        >
+                          <Mail className="w-4 h-4" /> Email Parent
+                        </DropdownMenuItem>
+                        <DropdownMenuItem className="gap-2" onClick={() => window.print()}>
+                          <Printer className="w-4 h-4" /> Print Profile
+                        </DropdownMenuItem>
+
+                        {(canApproveL1 || canApproveL2 || canReject) && <DropdownMenuSeparator />}
                         {canApproveL1 && (student as any).approval_status === "pending" && (
                           <DropdownMenuItem
                             className="gap-2"
@@ -392,17 +434,74 @@ export default function Students() {
                             (student as any).approval_status === "approved_subcounty") && (
                             <DropdownMenuItem
                               className="gap-2 text-destructive"
-                              onClick={() => {
-                                setStudentToReject(student);
-                                setRejectDialogOpen(true);
-                              }}
+                              onClick={() => { setStudentToReject(student); setRejectDialogOpen(true); }}
                             >
                               <XCircle className="w-4 h-4" /> Reject
                             </DropdownMenuItem>
                           )}
+
+                        {canUpdate && (
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuSub>
+                              <DropdownMenuSubTrigger className="gap-2">
+                                <GraduationCap className="w-4 h-4" /> Change Class
+                              </DropdownMenuSubTrigger>
+                              <DropdownMenuPortal>
+                                <DropdownMenuSubContent>
+                                  <DropdownMenuItem
+                                    onClick={() => changeClassLevel.mutate({ id: student.id, class_level: "pp1" })}
+                                    disabled={(student as any).class_level === "pp1"}
+                                  >
+                                    PP1
+                                  </DropdownMenuItem>
+                                  <DropdownMenuItem
+                                    onClick={() => changeClassLevel.mutate({ id: student.id, class_level: "pp2" })}
+                                    disabled={(student as any).class_level === "pp2"}
+                                  >
+                                    PP2
+                                  </DropdownMenuItem>
+                                </DropdownMenuSubContent>
+                              </DropdownMenuPortal>
+                            </DropdownMenuSub>
+
+                            {isAdmin() && centers && centers.length > 0 && (
+                              <DropdownMenuSub>
+                                <DropdownMenuSubTrigger className="gap-2">
+                                  <ArrowRightLeft className="w-4 h-4" /> Transfer Center
+                                </DropdownMenuSubTrigger>
+                                <DropdownMenuPortal>
+                                  <DropdownMenuSubContent className="max-h-72 overflow-y-auto">
+                                    {centers
+                                      .filter((c) => c.id !== student.center_id)
+                                      .map((c) => (
+                                        <DropdownMenuItem
+                                          key={c.id}
+                                          onClick={() => transferStudent.mutate({ id: student.id, center_id: c.id })}
+                                        >
+                                          {c.name}
+                                        </DropdownMenuItem>
+                                      ))}
+                                  </DropdownMenuSubContent>
+                                </DropdownMenuPortal>
+                              </DropdownMenuSub>
+                            )}
+
+                            <DropdownMenuItem
+                              className="gap-2"
+                              onClick={() => toggleActive.mutate({ id: student.id, is_active: !student.is_active })}
+                            >
+                              <Power className="w-4 h-4" />
+                              {student.is_active ? "Deactivate" : "Activate"}
+                            </DropdownMenuItem>
+                          </>
+                        )}
+
                         {canDelete && (
-                          <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(student)}>
-                            <Trash2 className="w-4 h-4" /> Delete
+                          <>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(student)}>
+                              <Trash2 className="w-4 h-4" /> Delete
                           </DropdownMenuItem>
                         )}
                       </DropdownMenuContent>
