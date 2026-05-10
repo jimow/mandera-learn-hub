@@ -67,16 +67,19 @@ export default function Teachers() {
     return Array.from(set).sort();
   }, [teachers]);
 
-  const activeFilterCount =
-    (filterGender !== "all" ? 1 : 0) +
-    (filterStatus !== "all" ? 1 : 0) +
-    (filterCenter !== "all" ? 1 : 0) +
-    (filterQualification !== "all" ? 1 : 0);
+  const subCounties = useMemo(() => {
+    const set = new Set<string>();
+    (centers || []).forEach((c: any) => {
+      if (c.sub_county?.trim()) set.add(c.sub_county.trim());
+    });
+    return Array.from(set).sort();
+  }, [centers]);
 
   const clearFilters = () => {
     setFilterGender("all");
     setFilterStatus("all");
     setFilterCenter("all");
+    setFilterSubCounty("all");
     setFilterQualification("all");
   };
 
@@ -96,10 +99,80 @@ export default function Teachers() {
     const matchesCenter =
       filterCenter === "all" ||
       (filterCenter === "unassigned" ? !teacher.center_id : teacher.center_id === filterCenter);
+    const matchesSubCounty =
+      filterSubCounty === "all" ||
+      (teacher as any).ecde_centers?.sub_county === filterSubCounty;
     const matchesQual =
       filterQualification === "all" || teacher.qualification === filterQualification;
-    return matchesSearch && matchesGender && matchesStatus && matchesCenter && matchesQual;
+    return matchesSearch && matchesGender && matchesStatus && matchesCenter && matchesSubCounty && matchesQual;
   });
+
+  const filterDefs: FilterDef[] = useMemo(() => [
+    {
+      key: "gender",
+      label: "Gender",
+      options: [
+        { value: "all", label: "All genders" },
+        { value: "male", label: "Male" },
+        { value: "female", label: "Female" },
+      ],
+    },
+    {
+      key: "status",
+      label: "Status",
+      options: [
+        { value: "all", label: "All" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+    {
+      key: "qualification",
+      label: "Qualification",
+      options: [
+        { value: "all", label: "All qualifications" },
+        ...qualifications.map((q) => ({ value: q, label: q })),
+      ],
+    },
+    {
+      key: "subCounty",
+      label: "Sub-county",
+      options: [
+        { value: "all", label: "All sub-counties" },
+        ...subCounties.map((s) => ({ value: s, label: s })),
+      ],
+      primary: false,
+    },
+    {
+      key: "center",
+      label: "Center",
+      options: [
+        { value: "all", label: "All centers" },
+        { value: "unassigned", label: "Unassigned" },
+        ...((centers || []).map((c) => ({ value: c.id, label: c.name }))),
+      ],
+      primary: false,
+    },
+  ], [centers, subCounties, qualifications]);
+
+  const filterValues = {
+    gender: filterGender,
+    status: filterStatus,
+    qualification: filterQualification,
+    subCounty: filterSubCounty,
+    center: filterCenter,
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    switch (key) {
+      case "gender": setFilterGender(value); break;
+      case "status": setFilterStatus(value); break;
+      case "qualification": setFilterQualification(value); break;
+      case "subCounty": setFilterSubCounty(value); break;
+      case "center": setFilterCenter(value); break;
+    }
+  };
+
 
   const {
     paginatedData,
