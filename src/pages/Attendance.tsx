@@ -369,21 +369,23 @@ function AttendanceTab({
                   </TableCell>
                   <TableCell>
                     <div className="flex gap-1 justify-end items-center">
-                      {isLocked ? (
+                      {!canEdit ? (
+                        <span className="text-xs text-muted-foreground italic">
+                          {current ? "View only" : "Awaiting marking"}
+                        </span>
+                      ) : isLocked ? (
                         <>
                           <span className="inline-flex items-center gap-1 text-xs text-muted-foreground mr-1">
                             <Lock className="w-3 h-3" /> Marked
                           </span>
-                          {canEdit && (
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-8 px-2"
-                              onClick={() => setEditingId(p.id)}
-                            >
-                              <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
-                            </Button>
-                          )}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            className="h-8 px-2"
+                            onClick={() => setEditingId(p.id)}
+                          >
+                            <Pencil className="w-3.5 h-3.5 mr-1" /> Edit
+                          </Button>
                         </>
                       ) : (
                         STATUS_OPTIONS.map((o) => (
