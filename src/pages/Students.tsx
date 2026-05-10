@@ -422,6 +422,16 @@ export default function Students() {
         description={`Are you sure you want to delete ${studentToDelete?.full_name}? This action cannot be undone.`}
         isLoading={deleteStudent.isPending}
       />
+      <RejectDialog
+        open={rejectDialogOpen}
+        onOpenChange={setRejectDialogOpen}
+        onConfirm={confirmReject}
+        studentName={studentToReject?.full_name || ""}
+        isLoading={rejectStudent.isPending}
+      />
+    </div>
+  );
+}
     </div>
   );
 }
