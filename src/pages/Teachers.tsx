@@ -177,90 +177,83 @@ export default function Teachers() {
         </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <Input
-            placeholder="Search teachers..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="pl-10"
-          />
-        </div>
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="outline" className="gap-2">
-              <Filter className="w-4 h-4" />
-              Filters
-              {activeFilterCount > 0 && (
-                <span className="ml-1 rounded-full bg-primary text-primary-foreground text-xs px-2 py-0.5">
-                  {activeFilterCount}
-                </span>
-              )}
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80 bg-popover" align="end">
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium">Filter Teachers</h4>
-                {activeFilterCount > 0 && (
-                  <Button variant="ghost" size="sm" onClick={clearFilters} className="h-7 gap-1">
-                    <X className="w-3 h-3" /> Clear
-                  </Button>
-                )}
-              </div>
-              <div className="space-y-2">
-                <Label>Gender</Label>
-                <Select value={filterGender} onValueChange={setFilterGender}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="male">Male</SelectItem>
-                    <SelectItem value="female">Female</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Status</Label>
-                <Select value={filterStatus} onValueChange={setFilterStatus}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover">
-                    <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="active">Active</SelectItem>
-                    <SelectItem value="inactive">Inactive</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="space-y-2">
-                <Label>Center</Label>
-                <Select value={filterCenter} onValueChange={setFilterCenter}>
-                  <SelectTrigger><SelectValue /></SelectTrigger>
-                  <SelectContent className="bg-popover max-h-64">
-                    <SelectItem value="all">All Centers</SelectItem>
-                    <SelectItem value="unassigned">Unassigned</SelectItem>
-                    {centers?.map((c) => (
-                      <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              {qualifications.length > 0 && (
-                <div className="space-y-2">
-                  <Label>Qualification</Label>
-                  <Select value={filterQualification} onValueChange={setFilterQualification}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent className="bg-popover max-h-64">
-                      <SelectItem value="all">All</SelectItem>
-                      {qualifications.map((q) => (
-                        <SelectItem key={q} value={q}>{q}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              )}
+      <div className="rounded-lg border bg-card p-4 shadow-sm space-y-3">
+        <div className="flex flex-col lg:flex-row lg:items-end gap-3">
+          <div className="flex-1 min-w-[200px] space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Search</Label>
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
+                placeholder="Name, employee no, phone, email…"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
-          </PopoverContent>
-        </Popover>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 lg:flex lg:flex-row lg:flex-1">
+            <div className="space-y-1.5 lg:flex-1 lg:min-w-[120px]">
+              <Label className="text-xs text-muted-foreground">Gender</Label>
+              <Select value={filterGender} onValueChange={setFilterGender}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="male">Male</SelectItem>
+                  <SelectItem value="female">Female</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5 lg:flex-1 lg:min-w-[120px]">
+              <Label className="text-xs text-muted-foreground">Status</Label>
+              <Select value={filterStatus} onValueChange={setFilterStatus}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-popover">
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="inactive">Inactive</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5 lg:flex-1 lg:min-w-[160px]">
+              <Label className="text-xs text-muted-foreground">Center</Label>
+              <Select value={filterCenter} onValueChange={setFilterCenter}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent className="bg-popover max-h-64">
+                  <SelectItem value="all">All Centers</SelectItem>
+                  <SelectItem value="unassigned">Unassigned</SelectItem>
+                  {centers?.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1.5 lg:flex-1 lg:min-w-[140px]">
+              <Label className="text-xs text-muted-foreground">Qualification</Label>
+              <Select
+                value={filterQualification}
+                onValueChange={setFilterQualification}
+                disabled={qualifications.length === 0}
+              >
+                <SelectTrigger><SelectValue placeholder="All" /></SelectTrigger>
+                <SelectContent className="bg-popover max-h-64">
+                  <SelectItem value="all">All</SelectItem>
+                  {qualifications.map((q) => (
+                    <SelectItem key={q} value={q}>{q}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          {activeFilterCount > 0 && (
+            <Button
+              variant="ghost"
+              onClick={clearFilters}
+              className="gap-1 self-end text-muted-foreground hover:text-foreground"
+            >
+              <X className="w-4 h-4" /> Clear ({activeFilterCount})
+            </Button>
+          )}
+        </div>
       </div>
 
       <div className="data-table animate-fade-in">
