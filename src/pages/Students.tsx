@@ -99,12 +99,13 @@ export default function Students() {
   const canReject =
     hasPermission("students", "reject") || canApproveL1 || canApproveL2;
 
-  const activeFilterCount =
-    (filterGender !== "all" ? 1 : 0) +
-    (filterClassLevel !== "all" ? 1 : 0) +
-    (filterApproval !== "all" ? 1 : 0) +
-    (filterStatus !== "all" ? 1 : 0) +
-    (filterCenter !== "all" ? 1 : 0);
+  const subCounties = useMemo(() => {
+    const set = new Set<string>();
+    (centers || []).forEach((c: any) => {
+      if (c.sub_county?.trim()) set.add(c.sub_county.trim());
+    });
+    return Array.from(set).sort();
+  }, [centers]);
 
   const clearFilters = () => {
     setFilterGender("all");
@@ -112,9 +113,10 @@ export default function Students() {
     setFilterApproval("all");
     setFilterStatus("all");
     setFilterCenter("all");
+    setFilterSubCounty("all");
   };
 
-  const filteredStudents = students?.filter((student) => {
+  const filteredStudents = (students || []).filter((student) => {
     const q = searchQuery.toLowerCase();
     const matchesSearch =
       !q ||
@@ -134,8 +136,93 @@ export default function Students() {
       (filterCenter === "unassigned"
         ? !student.center_id
         : student.center_id === filterCenter);
-    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter;
-  }) || [];
+    const matchesSubCounty =
+      filterSubCounty === "all" ||
+      (student as any).ecde_centers?.sub_county === filterSubCounty;
+    return matchesSearch && matchesGender && matchesClass && matchesApproval && matchesStatus && matchesCenter && matchesSubCounty;
+  });
+
+  const filterDefs: FilterDef[] = useMemo(() => [
+    {
+      key: "gender",
+      label: "Gender",
+      options: [
+        { value: "all", label: "All genders" },
+        { value: "male", label: "Male" },
+        { value: "female", label: "Female" },
+      ],
+    },
+    {
+      key: "classLevel",
+      label: "Class",
+      options: [
+        { value: "all", label: "All classes" },
+        { value: "pp1", label: "PP1" },
+        { value: "pp2", label: "PP2" },
+      ],
+    },
+    {
+      key: "status",
+      label: "Status",
+      options: [
+        { value: "all", label: "All" },
+        { value: "active", label: "Active" },
+        { value: "inactive", label: "Inactive" },
+      ],
+    },
+    {
+      key: "approval",
+      label: "Approval",
+      options: [
+        { value: "all", label: "All approvals" },
+        { value: "pending", label: "Pending" },
+        { value: "approved_subcounty", label: "Pending Ministry" },
+        { value: "approved_ministry", label: "Approved" },
+        { value: "rejected", label: "Rejected" },
+      ],
+      primary: false,
+    },
+    {
+      key: "subCounty",
+      label: "Sub-county",
+      options: [
+        { value: "all", label: "All sub-counties" },
+        ...subCounties.map((s) => ({ value: s, label: s })),
+      ],
+      primary: false,
+    },
+    {
+      key: "center",
+      label: "Center",
+      options: [
+        { value: "all", label: "All centers" },
+        { value: "unassigned", label: "Unassigned" },
+        ...((centers || []).map((c) => ({ value: c.id, label: c.name }))),
+      ],
+      primary: false,
+    },
+  ], [centers, subCounties]);
+
+  const filterValues = {
+    gender: filterGender,
+    classLevel: filterClassLevel,
+    status: filterStatus,
+    approval: filterApproval,
+    subCounty: filterSubCounty,
+    center: filterCenter,
+  };
+
+  const handleFilterChange = (key: string, value: string) => {
+    switch (key) {
+      case "gender": setFilterGender(value); break;
+      case "classLevel": setFilterClassLevel(value); break;
+      case "status": setFilterStatus(value); break;
+      case "approval": setFilterApproval(value); break;
+      case "subCounty": setFilterSubCounty(value); break;
+      case "center": setFilterCenter(value); break;
+    }
+  };
+
 
   const {
     paginatedData,
