@@ -15,6 +15,7 @@ import {
   Package,
   FileText,
   Settings,
+  CalendarCheck,
 } from "lucide-react";
 import { useState } from "react";
 import { cn } from "@/lib/utils";
@@ -64,6 +65,12 @@ export function Sidebar({ onLogout }: SidebarProps) {
       href: "/centers", 
       icon: School,
       visible: showCentersMenu,
+    },
+    {
+      name: "Attendance",
+      href: "/attendance",
+      icon: CalendarCheck,
+      visible: isAdmin() || isCenterAdmin || hasRole("teacher") || hasRole("data_entry") || hasRole("education_officer") || hasRole("sub_county_education_officer") || hasRole("governor") || hasRole("viewer"),
     },
     {
       name: "Store & Inventory",
