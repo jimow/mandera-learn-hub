@@ -527,6 +527,7 @@ export default function Students() {
 
       <StudentDialog open={dialogOpen} onOpenChange={setDialogOpen} student={editingStudent} />
       <StudentImportDialog open={importDialogOpen} onOpenChange={setImportDialogOpen} />
+      <StudentDetailsDialog open={detailsOpen} onOpenChange={setDetailsOpen} student={detailsStudent} />
       <DeleteConfirmDialog
         open={deleteDialogOpen}
         onOpenChange={setDeleteDialogOpen}
