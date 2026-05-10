@@ -29,6 +29,7 @@ export function DashboardLayout({ children, onLogout }: DashboardLayoutProps) {
                 <p className="text-xs text-muted-foreground">{profile.email}</p>
               </div>
             )}
+            </div>
           </div>
         </div>
         <div className="p-6 lg:p-8">{children}</div>
