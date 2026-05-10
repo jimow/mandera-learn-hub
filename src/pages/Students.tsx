@@ -356,6 +356,37 @@ export default function Students() {
                             <Edit className="w-4 h-4" /> Edit
                           </DropdownMenuItem>
                         )}
+                        {canApproveL1 && (student as any).approval_status === "pending" && (
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => approveL1.mutate(student.id)}
+                            disabled={approveL1.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4" /> Approve (Sub-county)
+                          </DropdownMenuItem>
+                        )}
+                        {canApproveL2 && (student as any).approval_status === "approved_subcounty" && (
+                          <DropdownMenuItem
+                            className="gap-2"
+                            onClick={() => approveL2.mutate(student.id)}
+                            disabled={approveL2.isPending}
+                          >
+                            <CheckCircle className="w-4 h-4" /> Approve (Ministry)
+                          </DropdownMenuItem>
+                        )}
+                        {canReject &&
+                          ((student as any).approval_status === "pending" ||
+                            (student as any).approval_status === "approved_subcounty") && (
+                            <DropdownMenuItem
+                              className="gap-2 text-destructive"
+                              onClick={() => {
+                                setStudentToReject(student);
+                                setRejectDialogOpen(true);
+                              }}
+                            >
+                              <XCircle className="w-4 h-4" /> Reject
+                            </DropdownMenuItem>
+                          )}
                         {canDelete && (
                           <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(student)}>
                             <Trash2 className="w-4 h-4" /> Delete
