@@ -41,7 +41,7 @@ export function useTeachers(centerId?: string) {
       const useInnerJoin = isSubCountyOfficer && !effectiveCenterId && subCountyNames.length > 0;
       let query = supabase
         .from("teachers")
-        .select(useInnerJoin ? "*, ecde_centers!inner(name, sub_county)" : "*, ecde_centers(name)")
+        .select(useInnerJoin ? "*, ecde_centers!inner(name, sub_county)" : "*, ecde_centers(name, sub_county)")
         .order("created_at", { ascending: false });
       
       if (effectiveCenterId) {
