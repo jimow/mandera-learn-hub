@@ -502,7 +502,8 @@ export default function Students() {
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="gap-2 text-destructive" onClick={() => handleDelete(student)}>
                               <Trash2 className="w-4 h-4" /> Delete
-                          </DropdownMenuItem>
+                            </DropdownMenuItem>
+                          </>
                         )}
                       </DropdownMenuContent>
                     </DropdownMenu>
